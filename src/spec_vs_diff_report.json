@@ -1,0 +1,86 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-14T00:01:34.930Z",
+  "summary": "Frontend implements Internet Identity gating (SignInScreen vs HomeScreen), a mobile-first grid, upload UI with multi-select and error handling, and a full-screen viewer with delete. Backend adds a Motoko actor with per-principal photo storage scaffolding and access-control mixins, but the diff evidence is insufficient/incomplete for key API behaviors (upload return metadata, deterministic newest-first pagination, delete/fetch-by-id authorization). Several unrequested features (user profiles, admin token/access control initialization) appear to be added.",
+  "missing_requirements": [
+    {
+      "id": "REQ-2",
+      "requirement": "Backend APIs must ensure users can ONLY list, fetch, and delete their own photos; fetching/deleting another user’s photo must fail/return an error.",
+      "reason": "The backend file is truncated and does not show any public fetch-by-id API, nor a deletePhoto implementation, nor the explicit ownership checks for those operations. Frontend calls actor.deletePhoto(photoId), but the corresponding backend method is not evidenced in the provided backend diff.",
+      "evidence": [
+        "backend/main.mo (truncated)",
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "Upload endpoint must accept multiple images, persist them, and return created photo metadata sorted by creation time (newest first), including stable id and createdAt for each uploaded photo.",
+      "reason": "backend.uploadMultiplePhotos is shown returning async () and accepting an array of Photo objects (including id/createdAt) provided by the caller, rather than generating/returning stable ids and createdAt metadata. No evidence of returning created photo metadata sorted newest-first.",
+      "evidence": [
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Backend listing API must return photos sorted newest-first and support deterministic pagination/cursoring so the frontend can reliably request the next page (no duplicates/missing items under normal use).",
+      "reason": "Frontend expects actor.getAllPhotosPaginated(cursor, null), but the backend diff only shows an internal listPhotosForUser(...) function (truncated) and does not show a public getAllPhotosPaginated method or clear cursor semantics. Sorting/pagination determinism cannot be confirmed from the truncated snippet.",
+      "evidence": [
+        "backend/main.mo (truncated)",
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "User profile system (getCallerUserProfile, getUserProfile, saveCallerUserProfile) and a mandatory profile setup dialog prompting for a name after sign-in.",
+      "reason": "BuildRequest does not mention user profiles or collecting a user name; this adds additional functionality beyond the explicitly listed photo gallery/auth/viewer/delete requirements.",
+      "evidence": [
+        "backend/main.mo (truncated)",
+        "frontend/src/App.tsx",
+        "frontend/src/components/ProfileSetupDialog.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/screens/HomeScreen.tsx (truncated)"
+      ]
+    },
+    {
+      "description": "Admin-token/AccessControl initialization flow via a URL parameter (caffeineAdminToken) and calling actor._initializeAccessControlWithSecret(adminToken).",
+      "reason": "BuildRequest does not request admin mode, secret tokens in URL/session, or access-control initialization hooks; it only requires per-user privacy keyed by caller Principal and Internet Identity auth.",
+      "evidence": [
+        "frontend/src/hooks/useActor.ts",
+        "frontend/src/utils/urlParams.ts (truncated)",
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "description": "Allowing an admin to view other users’ photos/profiles (admin bypass checks).",
+      "reason": "Non-goals/requirements describe strictly private per-user gallery; admin cross-user access is not requested and risks violating the 'ONLY list, fetch, and delete their own photos' requirement as written.",
+      "evidence": [
+        "backend/main.mo (truncated)"
+      ]
+    }
+  ],
+  "confidence": 0.62,
+  "changed_files": [
+    "all_files_summary.json",
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/index.css",
+    "frontend/index.html",
+    "frontend/src/App.tsx",
+    "frontend/src/components/PhotoGrid.tsx",
+    "frontend/src/components/PhotoViewer.tsx",
+    "frontend/src/components/ProfileSetupDialog.tsx",
+    "frontend/src/components/UploadButton.tsx",
+    "frontend/src/hooks/useActor.ts",
+    "frontend/src/hooks/useInternetIdentity.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/index.css",
+    "frontend/src/main.tsx",
+    "frontend/src/screens/HomeScreen.tsx",
+    "frontend/src/screens/SignInScreen.tsx",
+    "frontend/src/utils/urlParams.ts",
+    "frontend/tailwind.config.js",
+    "project_state.json"
+  ]
+}

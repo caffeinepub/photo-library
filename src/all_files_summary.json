@@ -1,0 +1,22 @@
+{
+  "backend/main.mo": "Actor implementing user profiles, access-controlled multi-photo upload, and per-user photo listing with pagination and storage mixins.",
+  "feature_evidence.json": "Feature evidence report mapping implemented features to source files, components, and test IDs.",
+  "frontend-file-summaries.txt": "Prewritten summaries of frontend source files and their roles in the application.",
+  "frontend/index.css": "Tailwind-based global styling defining OKLCH color variables for light and dark themes.",
+  "frontend/index.html": "HTML entry point mounting the React app and loading main.tsx.",
+  "frontend/src/App.tsx": "Root component handling authentication, profile loading, and routing between sign-in, profile setup, and home screens.",
+  "frontend/src/components/PhotoGrid.tsx": "Responsive grid displaying photo thumbnails and emitting click events for viewer navigation.",
+  "frontend/src/components/PhotoViewer.tsx": "Full-screen viewer with keyboard navigation and delete support for the current photo.",
+  "frontend/src/components/ProfileSetupDialog.tsx": "Modal dialog prompting first-time users to enter and save a display name.",
+  "frontend/src/components/UploadButton.tsx": "Button component that handles image file selection, converts files to blobs, tracks upload progress, and triggers photo uploads with error handling.",
+  "frontend/src/hooks/useActor.ts": "Creates and manages a backend actor based on Internet Identity, refreshing dependent queries when the actor changes.",
+  "frontend/src/hooks/useInternetIdentity.ts": "Provides Internet Identity authentication state, login, and logout via a React context using Dfinity AuthClient.",
+  "frontend/src/hooks/useQueries.ts": "Defines React Query hooks for fetching and mutating user profiles and photos, including uploads, deletions, and pagination.",
+  "frontend/src/index.css": "Tailwind CSS setup with custom theme variables for light and dark modes and base styling.",
+  "frontend/src/main.tsx": "Application entry point that initializes React, React Query, and Internet Identity provider before rendering the app.",
+  "frontend/src/screens/HomeScreen.tsx": "Main screen showing the photo grid, upload button, profile info, pagination, and logout functionality.",
+  "frontend/src/screens/SignInScreen.tsx": "Login screen that prompts the user to sign in via Internet Identity.",
+  "frontend/src/utils/urlParams.ts": "Utility for getting URL parameters (including hash), storing and retrieving them from sessionStorage, and syncing URL params to persistent session values.",
+  "frontend/tailwind.config.js": "Tailwind CSS configuration defining theme colors, layout settings, animations, and plugin setup for typography, container queries, and animations.",
+  "project_state.json": "JSON describing project state, implemented features, pending feature requests, and architectural notes for a mobile-first photo gallery app."
+}

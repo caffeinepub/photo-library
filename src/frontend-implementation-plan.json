@@ -1,0 +1,196 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Photo Library (mobile-first): authenticated per-user gallery with upload, viewer, delete",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Gate the app behind Internet Identity sign-in/sign-out and keep auth state consistent across refreshes.",
+      "acceptanceCriteria": [
+        "A signed-out user sees only a sign-in screen with a “Sign in” action.",
+        "A signed-in user can sign out and returns to the signed-out state.",
+        "Authenticated state is reflected consistently across refreshes (based on Internet Identity session)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "create",
+          "description": "Create the root app shell that reads auth state from the authorization-provided useInternetIdentity hook, gates all gallery UI behind authentication, and renders a signed-out-only sign-in view when unauthenticated. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/main.tsx",
+          "operation": "modify",
+          "description": "Ensure App is imported from the correct new location (frontend/src/App.tsx) and keep providers (QueryClientProvider, InternetIdentityProvider) wrapped so auth persists across refreshes via Internet Identity session."
+        },
+        {
+          "path": "frontend/src/screens/SignInScreen.tsx",
+          "operation": "create",
+          "description": "Add a minimal mobile-first sign-in screen that uses the authorization component’s Internet Identity flow (useInternetIdentity.login / clear) and shows only English user-facing text. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/ProfileSetupDialog.tsx",
+          "operation": "create",
+          "description": "Implement first-login name capture using the authorization component guidance (getCallerUserProfile/saveCallerUserProfile) to avoid showing a raw Principal in the UI; show as a blocking dialog after login only when no profile exists. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Build the mobile-first Home screen photo grid (newest-first) with pagination/infinite loading for the signed-in user.",
+      "acceptanceCriteria": [
+        "On mobile viewport, photos render in a responsive grid with thumbnails.",
+        "The grid loads the newest photos first.",
+        "User can load additional photos via infinite scroll or an explicit “Load more” control.",
+        "No photos from other users are visible."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/screens/HomeScreen.tsx",
+          "operation": "create",
+          "description": "Create the signed-in Home screen containing a minimal header (user name + sign out) and the newest-first grid. Wire paging via a deterministic cursor using the available backend listing capability; do not display any cross-user browsing UI. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/PhotoGrid.tsx",
+          "operation": "create",
+          "description": "Implement a responsive mobile-first thumbnail grid that renders photos using blob-storage ExternalBlob.getDirectURL() for fast image display and includes an explicit “Load more” control (or intersection-based infinite load) driven by the pagination cursor. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/usePhotos.ts",
+          "operation": "create",
+          "description": "Add React Query hooks for listing photos newest-first with cursor-based pagination and for exposing loading/error states to the Home screen. Ensure hooks are disabled until an authenticated actor is available (via useActor). Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Add multi-select upload from the Home screen with minimal progress/disabled state and basic English error handling.",
+      "acceptanceCriteria": [
+        "User can select multiple image files from their device in one picker interaction.",
+        "During upload, the UI provides minimal feedback (e.g., disabled button/spinner).",
+        "If an upload fails, a simple English message is shown (e.g., “Upload failed. Please try again.”).",
+        "Successful uploads cause the home grid to update."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/UploadButton.tsx",
+          "operation": "create",
+          "description": "Create an Upload button + hidden file input that supports selecting multiple images in one interaction and triggers upload; show minimal feedback (disabled/spinner) and basic English error message on failure. Use blob-storage ExternalBlob.fromBytes(...) (optionally withUploadProgress) to prepare image blobs for upload. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useUploadPhotos.ts",
+          "operation": "create",
+          "description": "Implement upload logic that converts selected files to bytes, wraps them in blob-storage ExternalBlob objects, calls the backend upload capability, and then refreshes/invalidates the photo listing query so the Home grid updates. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/screens/HomeScreen.tsx",
+          "operation": "modify",
+          "description": "Wire UploadButton into the Home screen header/actions and display any upload error message in-line without adding additional features. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Update the grid immediately after upload so new photos appear at the top without full refresh and preserve newest-first ordering.",
+      "acceptanceCriteria": [
+        "After a successful upload, the first items in the grid include the new photos.",
+        "The ordering remains newest-first."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useUploadPhotos.ts",
+          "operation": "modify",
+          "description": "After upload success, update the React Query cache to ensure newest items are shown first (e.g., refetch the first page and reset cursor or optimistically prepend returned/newly-fetched items) without a full page reload. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/usePhotos.ts",
+          "operation": "modify",
+          "description": "Expose a utility to reset pagination state to the newest-first initial page so the UI can reliably show newly uploaded photos at the top after an upload completes. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Implement a full-screen photo viewer opened from the grid with next/previous navigation across the user’s photos and dismiss back to the grid.",
+      "acceptanceCriteria": [
+        "Tapping a thumbnail opens a full-screen viewer showing the selected photo.",
+        "Viewer provides next/prev controls that navigate within the user’s photo set.",
+        "Viewer can be dismissed to return to the grid."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/PhotoViewer.tsx",
+          "operation": "create",
+          "description": "Create a full-screen overlay viewer that renders the selected image (using blob-storage ExternalBlob.getDirectURL()) and provides next/prev navigation through the currently loaded photo list, plus a close/dismiss action to return to the grid. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/PhotoGrid.tsx",
+          "operation": "modify",
+          "description": "Wire thumbnail tap/click to open PhotoViewer with the correct selected index and the current ordered photo array (newest-first). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/screens/HomeScreen.tsx",
+          "operation": "modify",
+          "description": "Own viewer open/close state at the Home screen level so dismiss returns to the same scroll/grid context; ensure viewer navigation stays within the signed-in user’s photos only. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "Add delete-from-viewer to remove a photo and update viewer flow and grid to reflect deletion.",
+      "acceptanceCriteria": [
+        "Viewer includes a “Delete” button.",
+        "On delete success, the photo is removed from backend storage for that user.",
+        "After deletion, the UI no longer shows the deleted photo in the grid.",
+        "Viewer navigates sensibly after deletion (e.g., to next/prev photo or closes if none)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useDeletePhoto.ts",
+          "operation": "create",
+          "description": "Implement a React Query mutation that calls the backend delete capability and updates/invalidates the cached photo list so the grid and viewer state remove the deleted item. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/PhotoViewer.tsx",
+          "operation": "modify",
+          "description": "Add a “Delete” action that triggers the delete mutation, shows a minimal in-progress state, and after success navigates to the next/prev photo (or closes if none remain) while ensuring the deleted photo is not shown again. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/screens/HomeScreen.tsx",
+          "operation": "modify",
+          "description": "Coordinate viewer selection/index updates with the photos array after deletions so the viewer flow remains sensible and the grid no longer includes the deleted photo. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "summary": "Apply a coherent, minimal, mobile-first visual theme and keep UI fast with no extra features beyond gallery/upload/view/delete.",
+      "acceptanceCriteria": [
+        "The UI uses a consistent theme (not blue/purple by default) across screens.",
+        "Layouts are optimized for mobile (comfortable tap targets, simple header/actions).",
+        "No UI for tags, albums, search, sharing, or other unrequested features is present."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "create",
+          "description": "Define global theme tokens (CSS variables used by Tailwind/shadcn-ui) with a minimal, non-default color palette (avoid default blue/purple), plus comfortable base typography and spacing tuned for mobile-first layouts. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/screens/SignInScreen.tsx",
+          "operation": "modify",
+          "description": "Apply consistent mobile-first layout patterns (centered content, clear primary action, adequate tap targets) and ensure only requested UI is present. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/screens/HomeScreen.tsx",
+          "operation": "modify",
+          "description": "Apply the same minimal theme and mobile-first header/action layout (Upload + Sign out), avoiding any UI for albums/tags/search/sharing. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/PhotoViewer.tsx",
+          "operation": "modify",
+          "description": "Style the full-screen viewer controls for mobile usability (large tap targets, simple top/bottom bars) and keep interactions minimal and fast. Verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}

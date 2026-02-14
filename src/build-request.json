@@ -1,0 +1,210 @@
+{
+  "kind": "build_request",
+  "title": "Photo Library: mobile-first per-user photo gallery with upload, viewer, and delete",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Implement authentication using Internet Identity: allow users to sign in and sign out, and gate the app so unauthenticated users cannot access the photo gallery screens.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "1) Auth: users can sign up, log in, log out."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A signed-out user sees only a sign-in screen with a “Sign in” action.",
+        "A signed-in user can sign out and returns to the signed-out state.",
+        "Authenticated state is reflected consistently across refreshes (based on Internet Identity session)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Create backend data model and APIs to support per-user private photo storage keyed by the caller’s Principal, ensuring users can ONLY list, fetch, and delete their own photos.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "2) Privacy: users can ONLY access their own photos."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend stores photo records associated with the uploading user’s Principal.",
+        "Listing photos returns only the caller’s photos.",
+        "Fetching photo content by id fails/returns error if the photo does not belong to the caller.",
+        "Deleting photo by id fails/returns error if the photo does not belong to the caller."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Implement backend photo upload endpoints to accept multiple images, persist them, and return created photo metadata sorted by creation time (newest first).",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "4) Upload: an “Upload” button that lets a user pick and upload multiple images.",
+          "5) After upload: new photos appear immediately at the top of the grid."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend accepts uploading multiple images in one user flow (may be multiple calls, but user selects multiple files at once).",
+        "Each successful upload returns a stable photo id and createdAt timestamp.",
+        "Uploaded photos are available immediately for listing and fetching."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Implement backend listing API for a newest-first home grid using either pagination or infinite-scroll style cursoring; the frontend must be able to request the next page reliably.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "3) Home screen: a photo grid sorted by newest first (infinite scroll or pagination is OK)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Listing returns photos sorted by newest first.",
+        "Listing supports paging/cursor so the frontend can load more results without reloading everything.",
+        "Pagination/cursor behavior is deterministic (no duplicates or missing items when scrolling forward under normal use)."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Build the mobile-first Home screen UI: show a minimal photo grid (newest first) for the signed-in user, with pagination or infinite scroll to load more.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "3) Home screen: a photo grid sorted by newest first (infinite scroll or pagination is OK).",
+          "8) Keep UI minimal and fast."
+        ]
+      },
+      "acceptanceCriteria": [
+        "On mobile viewport, photos render in a responsive grid with thumbnails.",
+        "The grid loads the newest photos first.",
+        "User can load additional photos via infinite scroll or an explicit “Load more” control.",
+        "No photos from other users are visible."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Add an “Upload” button on the Home screen that lets a user pick multiple image files and upload them; handle upload failures by showing a basic English error message.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "4) Upload: an “Upload” button that lets a user pick and upload multiple images.",
+          "- Handle upload errors and show a basic message."
+        ]
+      },
+      "acceptanceCriteria": [
+        "User can select multiple image files from their device in one picker interaction.",
+        "During upload, the UI provides minimal feedback (e.g., disabled button/spinner).",
+        "If an upload fails, a simple English message is shown (e.g., “Upload failed. Please try again.”).",
+        "Successful uploads cause the home grid to update."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Ensure newly uploaded photos appear immediately at the top of the home grid without requiring a full page refresh.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "5) After upload: new photos appear immediately at the top of the grid."
+        ]
+      },
+      "acceptanceCriteria": [
+        "After a successful upload, the first items in the grid include the new photos.",
+        "The ordering remains newest-first."
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Implement a full-screen photo viewer: tapping a photo in the grid opens a full-screen view with next/previous navigation through the user’s photos.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "6) Photo viewer: tap a photo to open full-screen viewer with next/prev navigation."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Tapping a thumbnail opens a full-screen viewer showing the selected photo.",
+        "Viewer provides next/prev controls that navigate within the user’s photo set.",
+        "Viewer can be dismissed to return to the grid."
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Add a Delete action in the full-screen viewer that deletes the currently viewed photo and updates the UI accordingly (remove from viewer flow and grid).",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "7) Delete: in the viewer, add a Delete button that removes the photo."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Viewer includes a “Delete” button.",
+        "On delete success, the photo is removed from backend storage for that user.",
+        "After deletion, the UI no longer shows the deleted photo in the grid.",
+        "Viewer navigates sensibly after deletion (e.g., to next/prev photo or closes if none)."
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "text": "Apply a coherent, minimal, mobile-first visual theme (colors, typography, spacing) and keep interactions fast and simple; do not add albums, tags, AI search, or other extra features.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "8) Keep UI minimal and fast. No AI search, no tags, no albums yet.",
+          "Implementation constraints:\n- Mobile-first layout.\n- Use simple components."
+        ]
+      },
+      "acceptanceCriteria": [
+        "The UI uses a consistent theme (not blue/purple by default) across screens.",
+        "Layouts are optimized for mobile (comfortable tap targets, simple header/actions).",
+        "No UI for tags, albums, search, sharing, or other unrequested features is present."
+      ]
+    }
+  ],
+  "constraints": [
+    "Use a single Motoko main actor for all backend logic.",
+    "Do not modify frontend files under frontend/immutablePaths (compose existing UI components instead).",
+    "Use English for any user-facing text.",
+    "Do not add extra features beyond the explicitly listed rules (no tags, albums, AI search, etc.)."
+  ],
+  "nonGoals": [
+    "Photo sharing between users.",
+    "Albums, tags, search, face recognition, AI features.",
+    "Third-party authentication providers (only Internet Identity).",
+    "Real-time multi-device sync beyond normal fetch/refresh behavior."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

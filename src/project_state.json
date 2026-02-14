@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Build “Photo Library”: a mobile-first, Google Photos-style personal gallery where each authenticated user can upload, view, and delete their own photos in a newest-first grid with a full-screen viewer.",
+  "architectural_notes": [
+    "Mobile-first layout; keep UI minimal and fast using simple components",
+    "No extra features beyond spec (no AI search, tags, albums yet)",
+    "Handle upload errors and show a basic message"
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-implement-authentication-using-internet-identity-allow-users-to-sign-in-and-sign-out-and-gate-the-app-so-unauthenticated-users-cannot-access-the-photo-gallery-screens",
+      "title": "Implement authentication using Internet Identity: allow users to sign in and sign out, and gate the app so unauthenticated users cannot access the photo gallery screens.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-the-mobile-first-home-screen-ui-show-a-minimal-photo-grid-newest-first-for-the-signed-in-user-with-pagination-or-infinite-scroll-to-load-more",
+      "title": "Build the mobile-first Home screen UI: show a minimal photo grid (newest first) for the signed-in user, with pagination or infinite scroll to load more.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-upload-button-on-the-home-screen-that-lets-a-user-pick-multiple-image-files-and-upload-them-handle-upload-failures-by-showing-a-basic-english-error-message",
+      "title": "Add an “Upload” button on the Home screen that lets a user pick multiple image files and upload them; handle upload failures by showing a basic English error message.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-full-screen-photo-viewer-tapping-a-photo-in-the-grid-opens-a-full-screen-view-with-next-previous-navigation-through-the-user-s-photos",
+      "title": "Implement a full-screen photo viewer: tapping a photo in the grid opens a full-screen view with next/previous navigation through the user’s photos.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-delete-action-in-the-full-screen-viewer-that-deletes-the-currently-viewed-photo-and-updates-the-ui-accordingly-remove-from-viewer-flow-and-grid",
+      "title": "Add a Delete action in the full-screen viewer that deletes the currently viewed photo and updates the UI accordingly (remove from viewer flow and grid).",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-coherent-minimal-mobile-first-visual-theme-colors-typography-spacing-and-keep-interactions-fast-and-simple-do-not-add-albums-tags-ai-search-or-other-extra-features",
+      "title": "Apply a coherent, minimal, mobile-first visual theme (colors, typography, spacing) and keep interactions fast and simple; do not add albums, tags, AI search, or other extra features.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "User authentication: sign up, log in, log out",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Per-user privacy: users can only access their own photos",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Home screen photo grid sorted by newest first with infinite scroll or pagination",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Multi-image upload via an Upload button; show basic error message on upload failure",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "After upload, newly uploaded photos appear immediately at the top of the grid",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Full-screen photo viewer with next/prev navigation opened by tapping a photo",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Delete photo from within the viewer",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Minimal, fast, mobile-first UI using simple components (no AI search/tags/albums yet)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Create backend data model and APIs to support per-user private photo storage keyed by the caller’s Principal, ensuring users can ONLY list, fetch, and delete their own photos.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Implement backend photo upload endpoints to accept multiple images, persist them, and return created photo metadata sorted by creation time (newest first).",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Implement backend listing API for a newest-first home grid using either pagination or infinite-scroll style cursoring; the frontend must be able to request the next page reliably.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Ensure newly uploaded photos appear immediately at the top of the home grid without requiring a full page refresh.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Photo Library",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

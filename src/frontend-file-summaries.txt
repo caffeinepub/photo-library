@@ -1,0 +1,11 @@
+{
+  "frontend/src/index.css": "Global styles with warm earth-tone OKLCH color system (terracotta primary, cream backgrounds) for both light and dark modes, plus base typography using system fonts.",
+  "frontend/src/App.tsx": "Root component that handles authentication state, shows SignInScreen for unauthenticated users, triggers ProfileSetupDialog for first-time users, and renders HomeScreen for authenticated users with profiles.",
+  "frontend/src/screens/SignInScreen.tsx": "Mobile-first sign-in screen with centered layout, large tap-friendly sign-in button, and loading state during Internet Identity authentication.",
+  "frontend/src/components/ProfileSetupDialog.tsx": "Modal dialog that captures user's name on first login, blocking interaction until profile is saved via saveCallerUserProfile.",
+  "frontend/src/screens/HomeScreen.tsx": "Main authenticated screen with sticky header (user name, upload, sign out), photo grid with pagination, upload error display, empty state, and footer with attribution.",
+  "frontend/src/components/PhotoGrid.tsx": "Responsive grid component that displays photo thumbnails in 2-6 columns (mobile to desktop) with hover effects and click handlers to open the viewer.",
+  "frontend/src/components/PhotoViewer.tsx": "Full-screen photo viewer overlay with keyboard navigation (arrows, escape), prev/next buttons, delete functionality, and photo counter display.",
+  "frontend/src/components/UploadButton.tsx": "Upload button with hidden file input supporting multiple image selection, progress tracking via ExternalBlob.withUploadProgress, and error handling; now correctly imports ExternalBlob from backend types.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including user profile management, infinite-scroll photo listing, multi-photo upload, and photo deletion with cache invalidation."
+}
