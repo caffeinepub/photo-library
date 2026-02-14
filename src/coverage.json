@@ -1,63 +1,125 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T00:19:56.681Z",
+  "generatedAt": "2026-02-14T00:36:37.776Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 2,
+    "total": 8,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-11",
-        "summary": "Fix backend photo upload so calling uploadMultiplePhotos appends the newly uploaded photos to the caller’s existing stored photo list instead of replacing/removing previously stored photos.",
+        "id": "REQ-14",
+        "summary": "Extend the backend data model to support per-user albums that reference existing photos (photos must remain in the main library and can belong to multiple albums).",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-12",
-        "summary": "Update the upload UI/flow so selecting photos multiple times adds to an accumulating “pending upload” selection (does not replace prior pending selections), and display previews of all pending photos before the user performs the upload.",
+        "id": "REQ-15",
+        "summary": "Add backend APIs for albums: create album, rename album, delete album, list albums, add photos to album, and remove photos from album.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-16",
+        "summary": "Add backend APIs to fetch the photos in a specific album and support paging in a way compatible with the existing paginated photo grid approach.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-17",
+        "summary": "Update backend upgrade/migration logic (if applicable in this project) so existing deployed canister state can be upgraded without data loss, initializing albums to an empty state for all users.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-18",
+        "summary": "Add an Albums tab to the authenticated app UI alongside the existing library experience, keeping the UI mobile-first and simple, with all user-facing text in English.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/UploadButton.tsx",
-          "frontend/src/components/PendingUploadPreview.tsx"
+          "frontend/src/screens/HomeScreen.tsx",
+          "frontend/src/screens/AlbumsScreen.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/UploadButton.tsx",
-          "frontend/src/components/PendingUploadPreview.tsx"
+          "frontend/src/screens/HomeScreen.tsx",
+          "frontend/src/screens/AlbumsScreen.tsx"
         ]
       },
       {
-        "id": "REQ-13",
-        "summary": "Ensure the upload action only uploads the currently pending selection, clears the pending preview list on successful upload, and does not remove any previously uploaded photos from the gallery UI or stored backend state.",
+        "id": "REQ-19",
+        "summary": "Implement the Albums tab UI: list albums with an album cover image and album name; support creating, renaming, and deleting albums from the UI.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/UploadButton.tsx",
           "frontend/src/hooks/useQueries.ts",
+          "frontend/src/screens/AlbumsScreen.tsx",
+          "frontend/src/components/AlbumCard.tsx",
+          "frontend/src/components/AlbumActionsDialog.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/screens/AlbumsScreen.tsx",
+          "frontend/src/components/AlbumCard.tsx",
+          "frontend/src/components/AlbumActionsDialog.tsx"
+        ]
+      },
+      {
+        "id": "REQ-20",
+        "summary": "Implement the Album detail view: opening an album shows a photo grid for that album, and users can add/remove photos to/from the album while photos remain in the main library.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/screens/AlbumDetailScreen.tsx",
+          "frontend/src/screens/AlbumsScreen.tsx",
+          "frontend/src/components/AlbumPhotoGridItem.tsx",
+          "frontend/src/components/PhotoPickerDialog.tsx",
           "frontend/src/screens/HomeScreen.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/UploadButton.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/screens/AlbumDetailScreen.tsx",
+          "frontend/src/screens/AlbumsScreen.tsx",
+          "frontend/src/components/AlbumPhotoGridItem.tsx",
+          "frontend/src/components/PhotoPickerDialog.tsx",
           "frontend/src/screens/HomeScreen.tsx"
+        ]
+      },
+      {
+        "id": "REQ-21",
+        "summary": "Create a project checkpoint named PHOTO_APP_STAGE_2_ALBUMS after the Albums feature is implemented and integrated end-to-end.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/PHOTO_APP_STAGE_2_ALBUMS.checkpoint.md"
+        ],
+        "matchedFiles": [
+          "frontend/PHOTO_APP_STAGE_2_ALBUMS.checkpoint.md"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
-    "build-template/README.md",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/PHOTO_APP_STAGE_2_ALBUMS.checkpoint.md",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/PendingUploadPreview.tsx",
-    "frontend/src/components/UploadButton.tsx",
+    "frontend/src/components/AlbumActionsDialog.tsx",
+    "frontend/src/components/AlbumCard.tsx",
+    "frontend/src/components/AlbumPhotoGridItem.tsx",
+    "frontend/src/components/PhotoPickerDialog.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/screens/AlbumDetailScreen.tsx",
+    "frontend/src/screens/AlbumsScreen.tsx",
     "frontend/src/screens/HomeScreen.tsx",
     "project_state.json",
     "scratch/component-selection.json",

@@ -24,6 +24,11 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const SharedAlbum = IDL.Record({
+  'id' : IDL.Text,
+  'name' : IDL.Text,
+  'photoIds' : IDL.Vec(IDL.Text),
+});
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const Time = IDL.Int;
 export const Photo = IDL.Record({
@@ -31,6 +36,10 @@ export const Photo = IDL.Record({
   'blob' : ExternalBlob,
   'name' : IDL.Text,
   'createdAt' : Time,
+});
+export const ListAlbumPhotosResponse = IDL.Record({
+  'photos' : IDL.Vec(Photo),
+  'nextCursor' : IDL.Opt(IDL.Nat),
 });
 export const ListPhotosResponse = IDL.Record({
   'photos' : IDL.Vec(Photo),
@@ -66,8 +75,18 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'addPhotosToAlbum' : IDL.Func([IDL.Text, IDL.Vec(IDL.Text)], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'createAlbum' : IDL.Func([IDL.Text], [], []),
+  'deleteAlbum' : IDL.Func([IDL.Text], [], []),
   'deletePhoto' : IDL.Func([IDL.Text], [], []),
+  'getAlbum' : IDL.Func([IDL.Text], [SharedAlbum], ['query']),
+  'getAlbumPhoto' : IDL.Func([IDL.Text, IDL.Text], [Photo], ['query']),
+  'getAlbumPhotosPaginated' : IDL.Func(
+      [IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)],
+      [ListAlbumPhotosResponse],
+      ['query'],
+    ),
   'getAllPhotosPaginated' : IDL.Func(
       [IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)],
       [ListPhotosResponse],
@@ -88,6 +107,9 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'listAlbums' : IDL.Func([], [IDL.Vec(SharedAlbum)], ['query']),
+  'removePhotoFromAlbum' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'renameAlbum' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'uploadMultiplePhotos' : IDL.Func([IDL.Vec(Photo)], [], []),
 });
@@ -111,6 +133,11 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
+  const SharedAlbum = IDL.Record({
+    'id' : IDL.Text,
+    'name' : IDL.Text,
+    'photoIds' : IDL.Vec(IDL.Text),
+  });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const Time = IDL.Int;
   const Photo = IDL.Record({
@@ -118,6 +145,10 @@ export const idlFactory = ({ IDL }) => {
     'blob' : ExternalBlob,
     'name' : IDL.Text,
     'createdAt' : Time,
+  });
+  const ListAlbumPhotosResponse = IDL.Record({
+    'photos' : IDL.Vec(Photo),
+    'nextCursor' : IDL.Opt(IDL.Nat),
   });
   const ListPhotosResponse = IDL.Record({
     'photos' : IDL.Vec(Photo),
@@ -153,8 +184,18 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'addPhotosToAlbum' : IDL.Func([IDL.Text, IDL.Vec(IDL.Text)], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'createAlbum' : IDL.Func([IDL.Text], [], []),
+    'deleteAlbum' : IDL.Func([IDL.Text], [], []),
     'deletePhoto' : IDL.Func([IDL.Text], [], []),
+    'getAlbum' : IDL.Func([IDL.Text], [SharedAlbum], ['query']),
+    'getAlbumPhoto' : IDL.Func([IDL.Text, IDL.Text], [Photo], ['query']),
+    'getAlbumPhotosPaginated' : IDL.Func(
+        [IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)],
+        [ListAlbumPhotosResponse],
+        ['query'],
+      ),
     'getAllPhotosPaginated' : IDL.Func(
         [IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)],
         [ListPhotosResponse],
@@ -175,6 +216,9 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'listAlbums' : IDL.Func([], [IDL.Vec(SharedAlbum)], ['query']),
+    'removePhotoFromAlbum' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'renameAlbum' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'uploadMultiplePhotos' : IDL.Func([IDL.Vec(Photo)], [], []),
   });

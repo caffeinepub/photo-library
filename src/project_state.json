@@ -1,17 +1,17 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
-  "summary": "Build “Photo Library”: a mobile-first, Google Photos-style personal gallery where each authenticated user can upload, view, and delete their own photos in a newest-first grid with a full-screen viewer.",
+  "projectStateVersion": 7,
+  "summary": "Build “Photo Library”: a mobile-first, Google Photos-style personal gallery where each authenticated user can upload, view, delete, and organize their own photos into simple albums (without removing photos from the main library grid).",
   "architectural_notes": [
     "Mobile-first layout; keep UI minimal and fast using simple components",
-    "No extra features beyond spec (no AI search, tags, albums yet)",
     "Handle upload errors and show a basic message",
-    "Upload flow must be additive: selecting/uploading new photos must not remove previously uploaded photos; support an accumulating pre-upload selection preview."
+    "Upload flow must be additive: selecting/uploading new photos must not remove previously uploaded photos; support an accumulating pre-upload selection preview.",
+    "Albums must be simple and limited to spec (no tags, AI search, sharing, smart albums, etc.)",
+    "A photo can belong to 0..N albums and must still appear in the main library grid (album membership is non-destructive)",
+    "Create checkpoint PHOTO_APP_STAGE_2_ALBUMS after implementing Albums"
   ],
-  "known_issues": [
-    "Bug: Uploading a new photo after a previous upload causes the previously uploaded photo to be removed from the stored gallery (acts like replace/delete instead of append)."
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-implement-authentication-using-internet-identity-allow-users-to-sign-in-and-sign-out-and-gate-the-app-so-unauthenticated-users-cannot-access-the-photo-gallery-screens",
@@ -74,6 +74,38 @@
       "title": "Ensure the upload action only uploads the currently pending selection, clears the pending preview list on successful upload, and does not remove any previously uploaded photos from the gallery UI or stored backend state.",
       "reqIds": [
         "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-albums-tab-to-the-authenticated-app-ui-alongside-the-existing-library-experience-keeping-the-ui-mobile-first-and-simple-with-all-user-facing-text-in-english",
+      "title": "Add an Albums tab to the authenticated app UI alongside the existing library experience, keeping the UI mobile-first and simple, with all user-facing text in English.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-albums-tab-ui-list-albums-with-an-album-cover-image-and-album-name-support-creating-renaming-and-deleting-albums-from-the-ui",
+      "title": "Implement the Albums tab UI: list albums with an album cover image and album name; support creating, renaming, and deleting albums from the UI.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-album-detail-view-opening-an-album-shows-a-photo-grid-for-that-album-and-users-can-add-remove-photos-to-from-the-album-while-photos-remain-in-the-main-library",
+      "title": "Implement the Album detail view: opening an album shows a photo grid for that album, and users can add/remove photos to/from the album while photos remain in the main library.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-project-checkpoint-named-photo-app-stage-2-albums-after-the-albums-feature-is-implemented-and-integrated-end-to-end",
+      "title": "Create a project checkpoint named PHOTO_APP_STAGE_2_ALBUMS after the Albums feature is implemented and integrated end-to-end.",
+      "reqIds": [
+        "REQ-21"
       ],
       "version": 1
     }
@@ -160,16 +192,40 @@
       "status": "pending"
     },
     {
-      "id": "AR-16",
-      "summary": "Fix upload flow so subsequent uploads add to existing gallery (do not delete/replace previously uploaded photos) and show an accumulating pre-upload preview of all selected photos",
+      "id": "AR-18",
+      "summary": "Add simple Albums: create/rename/delete albums; add/remove photos to/from albums without moving them out of the main library; Albums tab with album covers; album view shows a photo grid.",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-17",
-      "summary": "Fix backend photo upload so calling uploadMultiplePhotos appends the newly uploaded photos to the caller’s existing stored photo list instead of replacing/removing previously stored photos.",
+      "id": "AR-19",
+      "summary": "Extend the backend data model to support per-user albums that reference existing photos (photos must remain in the main library and can belong to multiple albums).",
       "reqIds": [
-        "REQ-11"
+        "REQ-14"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Add backend APIs for albums: create album, rename album, delete album, list albums, add photos to album, and remove photos from album.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Add backend APIs to fetch the photos in a specific album and support paging in a way compatible with the existing paginated photo grid approach.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Update backend upgrade/migration logic (if applicable in this project) so existing deployed canister state can be upgraded without data loss, initializing albums to an empty state for all users.",
+      "reqIds": [
+        "REQ-17"
       ],
       "status": "pending"
     }

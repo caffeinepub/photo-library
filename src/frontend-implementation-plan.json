@@ -1,54 +1,117 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Accumulative pending upload selection with pre-upload previews",
+  "title": "Simple Albums UI (tabs, album list, album grid detail, add/remove photos)",
   "requirements": [
     {
-      "id": "REQ-12",
-      "summary": "Accumulate selected images into a pending upload list across multiple picker selections and show thumbnails before uploading.",
+      "id": "REQ-18",
+      "summary": "Add an Albums tab alongside the Library view in the authenticated UI, keeping the experience mobile-first and English-only.",
       "acceptanceCriteria": [
-        "When the user selects images from the file picker, the app shows thumbnail previews for all currently pending images (including those selected in earlier picker sessions).",
-        "Selecting additional images later adds them to the pending preview list rather than replacing the previous pending previews.",
-        "The user can clearly see how many photos are pending before upload, and the UI remains mobile-first and minimal.",
-        "All user-facing text related to this flow is in English."
+        "The signed-in experience provides a clear way to switch between the main Library view and a new Albums view (e.g., tabs/segmented control).",
+        "All user-facing labels, buttons, and messages added for Albums are in English.",
+        "Existing Library behavior (upload, grid, viewer, delete) remains accessible and unchanged when on the Library tab."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/UploadButton.tsx",
+          "path": "frontend/src/screens/HomeScreen.tsx",
           "operation": "modify",
-          "description": "Refactor the component from immediate-upload-on-select into a two-step flow: (1) selecting images appends them into an in-memory pending list, (2) UI renders a minimal, mobile-first preview strip/grid of all pending images plus a clear pending count in English. Ensure multiple file-picker sessions append rather than replace, and reset the underlying file input value after each selection so re-selecting the same file still triggers onChange. Use object URLs (URL.createObjectURL) for previews and revoke them on clear/unmount to avoid leaks. Use the blob-storage component's ExternalBlob only at the upload step (not for previews) and verify the component's usage instructions before implementing."
+          "description": "Add a simple Library/Albums tab switch within the authenticated screen, preserving the existing Library UI and behaviors when Library is selected. Use the authorization component’s frontend guidance to ensure the tabbed content is only shown when authenticated and cached data stays cleared on logout (Verify the component's usage instructions before implementing.)"
         },
         {
-          "path": "frontend/src/components/PendingUploadPreview.tsx",
+          "path": "frontend/src/screens/AlbumsScreen.tsx",
           "operation": "create",
-          "description": "Add a small presentational component to render pending image thumbnails and a pending-count label (English), optimized for mobile-first layouts. Keep it purely UI-focused and composed into UploadButton (no direct backend calls). Verify the component's usage instructions before implementing."
+          "description": "Create an Albums screen component rendered by the new Albums tab; keep layout mobile-first and all text in English."
         }
       ]
     },
     {
-      "id": "REQ-13",
-      "summary": "Upload only the current pending selection, clear pending previews on success, keep pending on failure, and preserve existing gallery UI.",
+      "id": "REQ-19",
+      "summary": "Implement Albums list UI with cover thumbnails and album management (create, rename, delete) using React Query updates.",
       "acceptanceCriteria": [
-        "After a successful upload, the pending preview list is cleared and the gallery grid still shows all photos that were previously uploaded plus the new ones.",
-        "After a failed upload, the pending preview list remains intact so the user can retry without re-selecting files, and the existing gallery remains unchanged.",
-        "Uploading multiple times in a row (select → upload → select → upload) only ever increases the stored photo count unless the user explicitly deletes photos via the existing Delete action.",
-        "The existing basic upload failure message behavior remains (English), and no new error messaging is introduced that contradicts it."
+        "Albums view shows a list/grid of albums; each album card shows a cover thumbnail (derived from album contents) and the album name.",
+        "If an album has no photos, the UI shows a simple empty cover placeholder.",
+        "Users can create a new album by entering an album name.",
+        "Users can rename an existing album by editing its name.",
+        "Users can delete an album with a basic confirmation step to prevent accidental deletion.",
+        "After create/rename/delete, the albums list updates immediately (via React Query invalidation/refetch)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/UploadButton.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Implement an explicit Upload action that uploads exactly the current pending selection (convert only pending files to Photo objects and ExternalBlob instances at click time). On success: clear pending state, clear previews, clear progress, and keep the existing onError behavior untouched (no new conflicting messaging). On failure: preserve pending list and previews so the user can retry; keep existing 'Upload failed. Please try again.' behavior (English) and do not clear pending. Ensure the component disables upload while isPending and shows progress without mutating or clearing the existing gallery list. Verify the blob-storage component's usage instructions before implementing."
+          "description": "Add React Query hooks for albums: listAlbums, createAlbum, renameAlbum, deleteAlbum, and minimal cover-photo fetching based on existing backend capabilities. Ensure mutations invalidate/refetch album-related query keys for immediate UI updates."
         },
+        {
+          "path": "frontend/src/screens/AlbumsScreen.tsx",
+          "operation": "modify",
+          "description": "Render a simple albums grid/list with album name and cover thumbnail. Cover derivation: if album has photoIds, fetch a cover photo (e.g., first photoId) via existing backend capability; otherwise show an empty placeholder. Provide create/rename/delete UI with English labels and a basic delete confirmation."
+        },
+        {
+          "path": "frontend/src/components/AlbumCard.tsx",
+          "operation": "create",
+          "description": "Add an AlbumCard component used by AlbumsScreen to display album name and cover (using blob-storage ExternalBlob.getDirectURL() for cover rendering where available; Verify the component's usage instructions before implementing.)"
+        },
+        {
+          "path": "frontend/src/components/AlbumActionsDialog.tsx",
+          "operation": "create",
+          "description": "Add a small dialog/modal component to support create and rename (text input) and delete confirmation, keeping UI simple and English-only."
+        }
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "summary": "Implement album detail view with a photo grid, pagination, and add/remove photo membership while keeping photos in the main Library.",
+      "acceptanceCriteria": [
+        "Tapping an album opens an album detail view that renders photos in a grid using the app’s existing grid/viewer patterns.",
+        "Users can add photos to an album from their library without removing them from the main Library grid.",
+        "Users can remove photos from the album without deleting the photos from the main Library.",
+        "Album grid supports loading more if pagination is required by the backend.",
+        "After add/remove operations, the album grid and album cover update appropriately (via React Query invalidation/refetch)."
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Ensure the upload mutation continues to invalidate/refetch the existing photo list query after a successful upload (so newly uploaded photos appear in the grid without removing existing ones). Keep failure behavior unchanged (no additional user-facing messaging added here)."
+          "description": "Add React Query hooks for album detail: getAlbum (metadata), getAlbumPhotosPaginated (infinite query), addPhotosToAlbum (mutation), removePhotoFromAlbum (mutation). Ensure add/remove invalidates album photos queries and album list/cover queries so grids and covers update."
+        },
+        {
+          "path": "frontend/src/screens/AlbumDetailScreen.tsx",
+          "operation": "create",
+          "description": "Create an album detail view that shows an album header (name + back) and a paginated photo grid for the album. Reuse existing PhotoGrid and PhotoViewer patterns for viewing. Add a simple 'Add photos' action that opens a picker from the user’s Library."
+        },
+        {
+          "path": "frontend/src/screens/AlbumsScreen.tsx",
+          "operation": "modify",
+          "description": "Wire album selection to open AlbumDetailScreen (e.g., local state navigation within the Albums tab). Ensure there are no orphan views and users can navigate back to the albums list."
+        },
+        {
+          "path": "frontend/src/components/AlbumPhotoGridItem.tsx",
+          "operation": "create",
+          "description": "Add a small wrapper for album grid thumbnails that supports a 'Remove' affordance per photo (removes membership only). Use blob-storage ExternalBlob.getDirectURL() for thumbnail rendering (Verify the component's usage instructions before implementing.)"
+        },
+        {
+          "path": "frontend/src/components/PhotoPickerDialog.tsx",
+          "operation": "create",
+          "description": "Add a simple modal to select one-or-more photos from the main Library (using already-fetched library pages when possible) and add them to the album. Keep it simple and mobile-first with English-only labels."
         },
         {
           "path": "frontend/src/screens/HomeScreen.tsx",
           "operation": "modify",
-          "description": "Confirm the HomeScreen continues to treat uploads as additive by relying on existing paginated photo queries and not clearing photo state on upload. If needed, adjust only wiring/props for any UploadButton UI changes while keeping the current error banner and its English text behavior unchanged."
+          "description": "Ensure the Library tab remains unchanged in behavior and accessible; if the Albums tab needs access to the user’s library list for the picker, reuse existing photo queries without altering the Library grid/viewer/delete flows."
+        }
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "summary": "Add a project checkpoint marker for PHOTO_APP_STAGE_2_ALBUMS once Albums UI is integrated end-to-end.",
+      "acceptanceCriteria": [
+        "A checkpoint named PHOTO_APP_STAGE_2_ALBUMS exists and corresponds to a build where Albums works end-to-end (backend + frontend)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/PHOTO_APP_STAGE_2_ALBUMS.checkpoint.md",
+          "operation": "create",
+          "description": "Create a checkpoint marker file documenting that PHOTO_APP_STAGE_2_ALBUMS corresponds to the Albums feature being implemented and wired into the authenticated UI."
         }
       ]
     }

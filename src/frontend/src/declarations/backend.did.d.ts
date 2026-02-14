@@ -11,6 +11,10 @@ import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
 export type ExternalBlob = Uint8Array;
+export interface ListAlbumPhotosResponse {
+  'photos' : Array<Photo>,
+  'nextCursor' : [] | [bigint],
+}
 export interface ListPhotosResponse {
   'photos' : Array<Photo>,
   'nextCursor' : [] | [bigint],
@@ -20,6 +24,11 @@ export interface Photo {
   'blob' : ExternalBlob,
   'name' : string,
   'createdAt' : Time,
+}
+export interface SharedAlbum {
+  'id' : string,
+  'name' : string,
+  'photoIds' : Array<string>,
 }
 export type Time = bigint;
 export interface UserProfile { 'name' : string }
@@ -54,8 +63,17 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addPhotosToAlbum' : ActorMethod<[string, Array<string>], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'createAlbum' : ActorMethod<[string], undefined>,
+  'deleteAlbum' : ActorMethod<[string], undefined>,
   'deletePhoto' : ActorMethod<[string], undefined>,
+  'getAlbum' : ActorMethod<[string], SharedAlbum>,
+  'getAlbumPhoto' : ActorMethod<[string, string], Photo>,
+  'getAlbumPhotosPaginated' : ActorMethod<
+    [string, [] | [bigint], [] | [bigint]],
+    ListAlbumPhotosResponse
+  >,
   'getAllPhotosPaginated' : ActorMethod<
     [[] | [bigint], [] | [bigint]],
     ListPhotosResponse
@@ -70,6 +88,9 @@ export interface _SERVICE {
   >,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'listAlbums' : ActorMethod<[], Array<SharedAlbum>>,
+  'removePhotoFromAlbum' : ActorMethod<[string, string], undefined>,
+  'renameAlbum' : ActorMethod<[string, string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'uploadMultiplePhotos' : ActorMethod<[Array<Photo>], undefined>,
 }

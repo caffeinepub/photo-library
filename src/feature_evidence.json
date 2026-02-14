@@ -2,31 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-upload-ui-flow-so-selecting-photos-multiple-times-adds-to-an-accumulating-pending-upload-selection-does-not-replace-prior-pending-selections-and-display-previews-of-all-pending-photos-before-the-user-performs-the-upload",
-      "featureTitle": "Update the upload UI/flow so selecting photos multiple times adds to an accumulating “pending upload” selection (does not replace prior pending selections), and display previews of all pending photos before the user performs the upload.",
+      "featureId": "feature-add-an-albums-tab-to-the-authenticated-app-ui-alongside-the-existing-library-experience-keeping-the-ui-mobile-first-and-simple-with-all-user-facing-text-in-english",
+      "featureTitle": "Add an Albums tab to the authenticated app UI alongside the existing library experience, keeping the UI mobile-first and simple, with all user-facing text in English.",
       "files": [
-        "frontend/src/components/PendingUploadPreview.tsx",
-        "frontend/src/components/UploadButton.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-12"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-the-upload-action-only-uploads-the-currently-pending-selection-clears-the-pending-preview-list-on-successful-upload-and-does-not-remove-any-previously-uploaded-photos-from-the-gallery-ui-or-stored-backend-state",
-      "featureTitle": "Ensure the upload action only uploads the currently pending selection, clears the pending preview list on successful upload, and does not remove any previously uploaded photos from the gallery UI or stored backend state.",
-      "files": [
-        "frontend/src/components/UploadButton.tsx",
+        "frontend/src/screens/AlbumsScreen.tsx",
         "frontend/src/screens/HomeScreen.tsx"
       ],
       "components": [
@@ -39,7 +18,75 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-13"
+        "REQ-18"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-the-albums-tab-ui-list-albums-with-an-album-cover-image-and-album-name-support-creating-renaming-and-deleting-albums-from-the-ui",
+      "featureTitle": "Implement the Albums tab UI: list albums with an album cover image and album name; support creating, renaming, and deleting albums from the UI.",
+      "files": [
+        "frontend/src/components/AlbumActionsDialog.tsx",
+        "frontend/src/components/AlbumCard.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/screens/AlbumsScreen.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-19"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-the-album-detail-view-opening-an-album-shows-a-photo-grid-for-that-album-and-users-can-add-remove-photos-to-from-the-album-while-photos-remain-in-the-main-library",
+      "featureTitle": "Implement the Album detail view: opening an album shows a photo grid for that album, and users can add/remove photos to/from the album while photos remain in the main library.",
+      "files": [
+        "frontend/src/components/AlbumPhotoGridItem.tsx",
+        "frontend/src/components/PhotoPickerDialog.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/screens/AlbumDetailScreen.tsx",
+        "frontend/src/screens/AlbumsScreen.tsx",
+        "frontend/src/screens/HomeScreen.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-20"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-project-checkpoint-named-photo-app-stage-2-albums-after-the-albums-feature-is-implemented-and-integrated-end-to-end",
+      "featureTitle": "Create a project checkpoint named PHOTO_APP_STAGE_2_ALBUMS after the Albums feature is implemented and integrated end-to-end.",
+      "files": [
+        "frontend/PHOTO_APP_STAGE_2_ALBUMS.checkpoint.md"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-21"
       ],
       "confidence": "high"
     }

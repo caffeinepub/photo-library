@@ -1,13 +1,15 @@
 # Specification
 
 ## Summary
-**Goal:** Ensure photo uploads never overwrite previously stored photos, and improve the upload flow with an accumulating pre-upload preview.
+**Goal:** Add simple per-user photo albums (create/rename/delete, add/remove photos) with an Albums tab, album covers, and an album grid view while keeping photos in the main Library.
 
 **Planned changes:**
-- Backend: Update `uploadMultiplePhotos` to append newly uploaded photos to the caller’s existing stored photo list (no replacement/removal), while maintaining strict per-user scoping.
-- Backend: Ensure `getAllPhotosPaginated` returns photos newest-first, including newly uploaded photos at the top, while retaining older photos.
-- Frontend: Change photo selection so multiple file-picker selections accumulate into a single “pending upload” list rather than replacing previous selections.
-- Frontend: Display thumbnail previews for all pending photos (including those selected in earlier picker sessions) and show a clear pending count in a mobile-first minimal UI (English text).
-- Frontend/Backend flow: Upload action uploads only the current pending selection; on success clear pending previews; on failure keep pending previews for retry; gallery remains unchanged except for newly added photos.
+- Extend the backend data model to store per-user albums as references to existing photo IDs (photos can be in multiple albums and always remain in the main library).
+- Add backend APIs to create/rename/delete/list albums, add/remove one-or-more photo IDs to/from an album, and fetch an album’s photos with deterministic ordering and pagination compatible with the existing grid.
+- Update backend upgrade/migration logic to preserve existing data and initialize album state empty on upgrade.
+- Add an Albums tab in the authenticated UI to switch between Library and Albums (mobile-first, English text).
+- Implement Albums UI: albums list/grid with cover thumbnail (derived from album contents) + name, empty placeholder cover when no photos, and create/rename/delete flows with basic delete confirmation.
+- Implement Album detail view: open an album to see a paginated photo grid; add photos from the library to the album and remove photos from the album without deleting/moving them from the main Library.
+- Create a project checkpoint named PHOTO_APP_STAGE_2_ALBUMS after end-to-end integration.
 
-**User-visible outcome:** Users can select photos multiple times, see all pending thumbnails before uploading, and upload to add photos to their existing gallery without any previously uploaded photos disappearing.
+**User-visible outcome:** Signed-in users can switch to an Albums tab, create/rename/delete albums, open an album to see its photos in a grid, and add/remove photos to albums while the Library remains unchanged and complete.

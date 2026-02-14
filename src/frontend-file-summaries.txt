@@ -3,10 +3,17 @@
   "frontend/src/App.tsx": "Root component that handles authentication state, shows SignInScreen for unauthenticated users, triggers ProfileSetupDialog for first-time users, and renders HomeScreen for authenticated users with profiles.",
   "frontend/src/screens/SignInScreen.tsx": "Mobile-first sign-in screen with centered layout, large tap-friendly sign-in button, and loading state during Internet Identity authentication.",
   "frontend/src/components/ProfileSetupDialog.tsx": "Modal dialog that captures user's name on first login, blocking interaction until profile is saved via saveCallerUserProfile.",
-  "frontend/src/screens/HomeScreen.tsx": "Main authenticated screen with sticky header containing user info and sign-out button, upload section moved below header for better mobile layout, photo grid with pagination, and footer with attribution.",
+  "frontend/src/screens/HomeScreen.tsx": "Main authenticated screen with Library/Albums tab navigation, sticky header with user info and sign-out, upload section (Library tab only), photo grid with pagination, and footer with attribution.",
   "frontend/src/components/PhotoGrid.tsx": "Responsive grid component that displays photo thumbnails in 2-6 columns (mobile to desktop) with hover effects and click handlers to open the viewer.",
   "frontend/src/components/PhotoViewer.tsx": "Full-screen photo viewer overlay with keyboard navigation (arrows, escape), prev/next buttons, delete functionality, and photo counter display.",
   "frontend/src/components/UploadButton.tsx": "Two-step upload component with Select and Upload buttons that accumulates pending files across multiple selections, shows preview count, and only uploads when Upload is clicked; clears pending state on success, preserves it on failure.",
-  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including user profile management, infinite-scroll photo listing, multi-photo upload, and photo deletion with cache invalidation.",
-  "frontend/src/components/PendingUploadPreview.tsx": "Presentational component that displays a mobile-first grid of pending photo thumbnails with individual remove buttons and a clear-all action."
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including user profiles, photo management (upload, list, delete), and album operations (create, rename, delete, list, add/remove photos) with proper cache invalidation.",
+  "frontend/src/components/PendingUploadPreview.tsx": "Presentational component that displays a mobile-first grid of pending photo thumbnails with individual remove buttons and a clear-all action.",
+  "frontend/src/screens/AlbumsScreen.tsx": "Albums list view showing album grid with cover thumbnails, create album button, empty state, and navigation to album detail view.",
+  "frontend/src/screens/AlbumDetailScreen.tsx": "Album detail view with header (back button, album name, photo count), action buttons (add photos, rename, delete), paginated photo grid, and dialogs for album management.",
+  "frontend/src/components/AlbumCard.tsx": "Album card component displaying album cover thumbnail (or empty placeholder), album name, and photo count with hover effects.",
+  "frontend/src/components/AlbumActionsDialog.tsx": "Modal dialog supporting three modes (create, rename, delete) with form inputs for name entry and confirmation UI for deletion.",
+  "frontend/src/components/AlbumPhotoGridItem.tsx": "Photo grid item for album view with hover-to-reveal remove button that removes photo from album without deleting it from library.",
+  "frontend/src/components/PhotoPickerDialog.tsx": "Modal dialog for selecting multiple photos from library to add to an album, with selection checkmarks, pagination, and batch add functionality.",
+  "frontend/PHOTO_APP_STAGE_2_ALBUMS.checkpoint.md": "Checkpoint documentation marking completion of Albums feature with full feature list, technical implementation details, and backend integration summary."
 }

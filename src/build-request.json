@@ -1,80 +1,173 @@
 {
   "kind": "build_request",
-  "title": "Fix upload replacing existing photos; add accumulating pre-upload preview",
-  "priority": "high",
+  "title": "Add simple Albums (create/rename/delete, add/remove photos, Albums tab + album grid view)",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-11",
-      "text": "Fix backend photo upload so calling uploadMultiplePhotos appends the newly uploaded photos to the caller’s existing stored photo list instead of replacing/removing previously stored photos.",
+      "id": "REQ-14",
+      "text": "Extend the backend data model to support per-user albums that reference existing photos (photos must remain in the main library and can belong to multiple albums).",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-8"
-        ],
-        "quotes": [
-          "But it deletes the picture I uploaded and then uploads the other picture. So I can't add to this collection.",
-          "for 1), I meant it is removed from the stored gallery I assume."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Given a user with existing stored photos, calling uploadMultiplePhotos with one or more new photos results in the user having all prior photos plus the newly uploaded photos (no prior photo is removed).",
-        "After uploadMultiplePhotos completes, getAllPhotosPaginated returns the newly uploaded photos at the top (newest-first) while retaining previously uploaded photos in the list.",
-        "No changes are made that allow one user to append to or read another user’s photos (caller scoping remains enforced)."
-      ]
-    },
-    {
-      "id": "REQ-12",
-      "text": "Update the upload UI/flow so selecting photos multiple times adds to an accumulating “pending upload” selection (does not replace prior pending selections), and display previews of all pending photos before the user performs the upload.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-5",
-          "msg-6"
-        ],
-        "quotes": [
-          "Yes",
-          "Yes, show all the photos before upload."
-        ]
-      },
-      "acceptanceCriteria": [
-        "When the user selects images from the file picker, the app shows thumbnail previews for all currently pending images (including those selected in earlier picker sessions).",
-        "Selecting additional images later adds them to the pending preview list rather than replacing the previous pending previews.",
-        "The user can clearly see how many photos are pending before upload, and the UI remains mobile-first and minimal.",
-        "All user-facing text related to this flow is in English."
-      ]
-    },
-    {
-      "id": "REQ-13",
-      "text": "Ensure the upload action only uploads the currently pending selection, clears the pending preview list on successful upload, and does not remove any previously uploaded photos from the gallery UI or stored backend state.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-4",
           "msg-5"
         ],
         "quotes": [
-          "I want to be able to add to the collection of pictures I have and keep the ones I've uploaded already.",
-          "Do you want the upload button to always add photos to your existing gallery, even if you select just one new file? 2) Yes"
+          "Next I want to add albums.\n\nAdd Albums.\n\nRequirements:\n- Create, rename, delete albums.\n- Add/remove photos to/from albums.\n- A photo can be in albums AND still remain in the main library grid (do not move it out).\n- Add an Albums tab with album covers.\n- Album view is a grid.\n\nKeep it simple. No extra features."
         ]
       },
       "acceptanceCriteria": [
-        "After a successful upload, the pending preview list is cleared and the gallery grid still shows all photos that were previously uploaded plus the new ones.",
-        "After a failed upload, the pending preview list remains intact so the user can retry without re-selecting files, and the existing gallery remains unchanged.",
-        "Uploading multiple times in a row (select → upload → select → upload) only ever increases the stored photo count unless the user explicitly deletes photos via the existing Delete action.",
-        "The existing basic upload failure message behavior remains (English), and no new error messaging is introduced that contradicts it."
+        "Album membership is represented as references (photo IDs) and does not delete/move photos from the user’s main photo list.",
+        "A single photo can belong to multiple albums.",
+        "Album data is stored per authenticated caller (no cross-user access)."
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "text": "Add backend APIs for albums: create album, rename album, delete album, list albums, add photos to album, and remove photos from album.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Create, rename, delete albums.",
+          "Add/remove photos to/from albums."
+        ]
+      },
+      "acceptanceCriteria": [
+        "The backend exposes callable methods to create an album with a name, rename an album, delete an album, list all albums for the caller, add one-or-more photo IDs to an album, and remove one-or-more photo IDs from an album.",
+        "All album APIs enforce the same authorization rule used elsewhere (only authenticated users; callers can only operate on their own albums).",
+        "Adding photos to an album validates that each referenced photo ID exists in the caller’s library; invalid IDs result in a clear error.",
+        "Deleting an album removes only the album and its memberships; it does not delete any photos from storage/library."
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "text": "Add backend APIs to fetch the photos in a specific album and support paging in a way compatible with the existing paginated photo grid approach.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Album view is a grid."
+        ]
+      },
+      "acceptanceCriteria": [
+        "The backend exposes an API to fetch an album’s photos for the caller, returning photo metadata/blobs consistent with existing photo types used by the frontend.",
+        "Album photo listing supports pagination (cursor + optional size) similar to the existing library listing so the frontend can render a grid and load more.",
+        "The ordering of photos returned for an album is deterministic (e.g., newest-first based on the photo’s createdAt, matching the library’s user expectations)."
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "text": "Update backend upgrade/migration logic (if applicable in this project) so existing deployed canister state can be upgraded without data loss, initializing albums to an empty state for all users.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Add Albums."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Upgrading from the current deployed version preserves existing user photos and profiles.",
+        "After upgrade, album-related state starts empty and does not break existing photo listing/upload/delete flows."
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "text": "Add an Albums tab to the authenticated app UI alongside the existing library experience, keeping the UI mobile-first and simple, with all user-facing text in English.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Add an Albums tab with album covers.",
+          "Keep it simple. No extra features."
+        ]
+      },
+      "acceptanceCriteria": [
+        "The signed-in experience provides a clear way to switch between the main Library view and a new Albums view (e.g., tabs/segmented control).",
+        "All user-facing labels, buttons, and messages added for Albums are in English.",
+        "Existing Library behavior (upload, grid, viewer, delete) remains accessible and unchanged when on the Library tab."
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "text": "Implement the Albums tab UI: list albums with an album cover image and album name; support creating, renaming, and deleting albums from the UI.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Create, rename, delete albums.",
+          "Add an Albums tab with album covers."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Albums view shows a list/grid of albums; each album card shows a cover thumbnail (derived from album contents) and the album name.",
+        "If an album has no photos, the UI shows a simple empty cover placeholder.",
+        "Users can create a new album by entering an album name.",
+        "Users can rename an existing album by editing its name.",
+        "Users can delete an album with a basic confirmation step to prevent accidental deletion.",
+        "After create/rename/delete, the albums list updates immediately (via React Query invalidation/refetch)."
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "text": "Implement the Album detail view: opening an album shows a photo grid for that album, and users can add/remove photos to/from the album while photos remain in the main library.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Add/remove photos to/from albums.",
+          "A photo can be in albums AND still remain in the main library grid (do not move it out).",
+          "Album view is a grid."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Tapping an album opens an album detail view that renders photos in a grid using the app’s existing grid/viewer patterns.",
+        "Users can add photos to an album from their library without removing them from the main Library grid.",
+        "Users can remove photos from the album without deleting the photos from the main Library.",
+        "Album grid supports loading more if pagination is required by the backend.",
+        "After add/remove operations, the album grid and album cover update appropriately (via React Query invalidation/refetch)."
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "text": "Create a project checkpoint named PHOTO_APP_STAGE_2_ALBUMS after the Albums feature is implemented and integrated end-to-end.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Create checkpoint PHOTO_APP_STAGE_2_ALBUMS when done."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A checkpoint named PHOTO_APP_STAGE_2_ALBUMS exists and corresponds to a build where Albums works end-to-end (backend + frontend)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; only add backend/migration.mo if a state upgrade is actually required.",
-    "Do not edit any frontend files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any sources inside frontend/src/components/ui (compose instead).",
-    "Keep the app mobile-first and minimal; ensure interactions remain fast and simple."
+    "Backend must remain a single Motoko actor (all logic in backend/main.mo).",
+    "Do not edit files under frontend immutablePaths (compose existing UI components instead).",
+    "Keep Albums simple: only create/rename/delete albums, add/remove photos, albums list with covers, and album grid view.",
+    "Photos added to albums must still remain in the main library grid (no moving).",
+    "Use English for all user-facing text."
   ],
   "nonGoals": [
-    "Do not add albums, tags, AI search, sharing, or any other organizational features.",
-    "Do not add third-party authentication providers beyond Internet Identity.",
-    "Do not add external databases or additional backend services."
+    "No tags, AI search, smart albums, sharing, collaborators, or public links.",
+    "No nested albums/folders.",
+    "No photo edits, favorites, or additional metadata features beyond what is required for album membership.",
+    "No third-party authentication beyond Internet Identity."
   ],
   "imageRequirements": {
     "required": [],
