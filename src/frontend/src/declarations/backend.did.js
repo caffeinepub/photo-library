@@ -28,6 +28,7 @@ export const SharedAlbum = IDL.Record({
   'id' : IDL.Text,
   'name' : IDL.Text,
   'photoIds' : IDL.Vec(IDL.Text),
+  'coverPhotoId' : IDL.Opt(IDL.Text),
 });
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const Time = IDL.Int;
@@ -36,6 +37,7 @@ export const Photo = IDL.Record({
   'blob' : ExternalBlob,
   'name' : IDL.Text,
   'createdAt' : Time,
+  'caption' : IDL.Opt(IDL.Text),
 });
 export const ListAlbumPhotosResponse = IDL.Record({
   'photos' : IDL.Vec(Photo),
@@ -111,6 +113,8 @@ export const idlService = IDL.Service({
   'removePhotoFromAlbum' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'renameAlbum' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'setAlbumCoverPhoto' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'updatePhotoCaption' : IDL.Func([IDL.Text, IDL.Opt(IDL.Text)], [], []),
   'uploadMultiplePhotos' : IDL.Func([IDL.Vec(Photo)], [], []),
 });
 
@@ -137,6 +141,7 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Text,
     'name' : IDL.Text,
     'photoIds' : IDL.Vec(IDL.Text),
+    'coverPhotoId' : IDL.Opt(IDL.Text),
   });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const Time = IDL.Int;
@@ -145,6 +150,7 @@ export const idlFactory = ({ IDL }) => {
     'blob' : ExternalBlob,
     'name' : IDL.Text,
     'createdAt' : Time,
+    'caption' : IDL.Opt(IDL.Text),
   });
   const ListAlbumPhotosResponse = IDL.Record({
     'photos' : IDL.Vec(Photo),
@@ -220,6 +226,8 @@ export const idlFactory = ({ IDL }) => {
     'removePhotoFromAlbum' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'renameAlbum' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'setAlbumCoverPhoto' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'updatePhotoCaption' : IDL.Func([IDL.Text, IDL.Opt(IDL.Text)], [], []),
     'uploadMultiplePhotos' : IDL.Func([IDL.Vec(Photo)], [], []),
   });
 };

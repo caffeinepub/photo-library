@@ -6,12 +6,15 @@ import Iter "mo:core/Iter";
 import Text "mo:core/Text";
 import Order "mo:core/Order";
 import Principal "mo:core/Principal";
-import Runtime "mo:core/Runtime";
 import Storage "blob-storage/Storage";
-import MixinStorage "blob-storage/Mixin";
+import Runtime "mo:core/Runtime";
 import AccessControl "authorization/access-control";
+import MixinStorage "blob-storage/Mixin";
 import MixinAuthorization "authorization/MixinAuthorization";
+import Migration "migration";
 
+// Specify the migration module in a with-clause
+(with migration = Migration.run)
 actor {
   // Initialize the authorization system
   let accessControlState = AccessControl.initState();
@@ -23,6 +26,7 @@ actor {
       blob : Storage.ExternalBlob;
       name : Text;
       createdAt : Time.Time;
+      caption : ?Text;
     };
 
     public func compareByCreatedAt(photo1 : Photo, photo2 : Photo) : Order.Order {
@@ -38,12 +42,14 @@ actor {
     id : Text;
     name : Text;
     photoIds : List.List<Text>;
+    coverPhotoId : ?Text;
   };
 
   type SharedAlbum = {
     id : Text;
     name : Text;
     photoIds : [Text];
+    coverPhotoId : ?Text;
   };
 
   // User profile type
@@ -58,9 +64,11 @@ actor {
   var nextId = 0;
   let pageSize = 36;
 
+  // Internal references (legacy code compatibility)
+  let photos = allPhotos;
+
   // Blob storage mixin retained for potential future use.
   include MixinStorage();
-  let photos = allPhotos;
 
   // Helper functions
   func getUserAlbums(caller : Principal) : Map.Map<Text, InternalAlbum> {
@@ -76,32 +84,23 @@ actor {
 
   // Profile Functions
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access profiles");
-    };
+    verifyUser(caller);
     userProfiles.get(caller);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own profile");
-    };
+    verifyOwnerOrAdmin(caller, user);
     userProfiles.get(user);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
-    };
+    verifyUser(caller);
     userProfiles.add(caller, profile);
   };
 
   // Photo Management
   public shared ({ caller }) func uploadMultiplePhotos(newPhotos : [Photo]) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can upload photos");
-    };
-
+    verifyUser(caller);
     nextId += newPhotos.size();
 
     let newPhotosList = listFromArray(newPhotos);
@@ -120,13 +119,22 @@ actor {
   };
 
   func getUserPhotosById(caller : Principal, userId : Principal) : List.List<Photo> {
-    if (caller != userId and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only fetch own photos");
-    };
-
+    verifyOwnerOrAdmin(caller, userId);
     switch (photos.get(userId)) {
       case (?userPhotos) { userPhotos };
       case (null) { List.empty<Photo>() };
+    };
+  };
+
+  func verifyOwnerOrAdmin(caller : Principal, owner : Principal) {
+    if (caller != owner and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Operation requires owner or admin privileges");
+    };
+  };
+
+  func verifyUser(caller : Principal) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can perform this action");
     };
   };
 
@@ -191,17 +199,12 @@ actor {
   };
 
   public query ({ caller }) func getUserPhotosPaginated(userId : Principal, cursor : ?Nat, size : ?Nat) : async ListPhotosResponse {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can list photos");
-    };
+    verifyUser(caller);
     listPhotosForUser(caller, userId, cursor, size);
   };
 
   public query ({ caller }) func getAllPhotosPaginated(cursor : ?Nat, size : ?Nat) : async ListPhotosResponse {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can list photos");
-    };
-
+    verifyUser(caller);
     switch (photos.get(caller)) {
       case (?userPhotos) {
         let totalSize = userPhotos.size();
@@ -245,9 +248,7 @@ actor {
   };
 
   public query ({ caller }) func getPhoto(photoId : Text) : async Photo {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can fetch photos");
-    };
+    verifyUser(caller);
 
     let userPhotos = getUserPhotos(caller);
     let matching = userPhotos.filter(func(photo) { photoId == photo.id });
@@ -261,9 +262,7 @@ actor {
   };
 
   public query ({ caller }) func getUserPhoto(userId : Principal, photoId : Text) : async Photo {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can fetch photos");
-    };
+    verifyUser(caller);
 
     let userPhotos = getUserPhotosById(caller, userId);
     let matching = userPhotos.filter(func(photo) { photoId == photo.id });
@@ -277,14 +276,60 @@ actor {
   };
 
   public shared ({ caller }) func deletePhoto(photoId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can delete photos");
-    };
+    verifyUser(caller);
 
     switch (photos.get(caller)) {
       case (?userPhotos) {
         let filteredPhotos = userPhotos.filter(func(photo) { photo.id != photoId });
         allPhotos.add(caller, filteredPhotos);
+
+        // Update all albums that contain this photo
+        let userAlbums = getUserAlbums(caller);
+        for ((albumId, album) in userAlbums.entries()) {
+          let photoExists = album.photoIds.any(func(id) { id == photoId });
+          if (photoExists) {
+            let updatedPhotoIds = album.photoIds.filter(func(id) { id != photoId });
+            var newCoverPhotoId = album.coverPhotoId;
+
+            // If the deleted photo was the cover, update to first photo or null
+            if (album.coverPhotoId == ?photoId) {
+              newCoverPhotoId := if (not updatedPhotoIds.isEmpty()) {
+                ?updatedPhotoIds.toArray()[0];
+              } else { null };
+            };
+
+            let updatedAlbum : InternalAlbum = {
+              album with
+              photoIds = updatedPhotoIds;
+              coverPhotoId = newCoverPhotoId;
+            };
+            userAlbums.add(albumId, updatedAlbum);
+          };
+        };
+        albums.add(caller, userAlbums);
+      };
+      case (null) {
+        Runtime.trap("No photos found for user");
+      };
+    };
+  };
+
+  // Caption Functionality
+  public shared ({ caller }) func updatePhotoCaption(photoId : Text, newCaption : ?Text) : async () {
+    verifyUser(caller);
+
+    switch (allPhotos.get(caller)) {
+      case (?userPhotos) {
+        let updatedPhotos = userPhotos.map<Photo, Photo>(
+          func(photo) {
+            if (photo.id == photoId) {
+              { photo with caption = newCaption };
+            } else {
+              photo;
+            };
+          }
+        );
+        allPhotos.add(caller, updatedPhotos);
       };
       case (null) {
         Runtime.trap("No photos found for user");
@@ -294,15 +339,15 @@ actor {
 
   // Album Management
   public shared ({ caller }) func createAlbum(name : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can create albums");
-    };
+    verifyUser(caller);
 
     let albumId = nextId.toText();
+    nextId += 1;
     let newAlbum : InternalAlbum = {
       id = albumId;
       name;
       photoIds = List.empty<Text>();
+      coverPhotoId = null;
     };
 
     let userAlbums = getUserAlbums(caller);
@@ -311,9 +356,7 @@ actor {
   };
 
   public shared ({ caller }) func renameAlbum(albumId : Text, newName : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can rename albums");
-    };
+    verifyUser(caller);
 
     let userAlbums = getUserAlbums(caller);
     switch (userAlbums.get(albumId)) {
@@ -328,10 +371,31 @@ actor {
     };
   };
 
-  public shared ({ caller }) func deleteAlbum(albumId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can delete albums");
+  public shared ({ caller }) func setAlbumCoverPhoto(albumId : Text, photoId : Text) : async () {
+    verifyUser(caller);
+
+    let userAlbums = getUserAlbums(caller);
+    switch (userAlbums.get(albumId)) {
+      case (?album) {
+        // Ensure the photo exists in the album
+        let photoExists = album.photoIds.any(func(id) { id == photoId });
+        if (not photoExists) {
+          Runtime.trap("Photo does not exist in album");
+        };
+        let updatedAlbum : InternalAlbum = {
+          album with coverPhotoId = ?photoId;
+        };
+        userAlbums.add(albumId, updatedAlbum);
+        albums.add(caller, userAlbums);
+      };
+      case (null) {
+        Runtime.trap("Album not found");
+      };
     };
+  };
+
+  public shared ({ caller }) func deleteAlbum(albumId : Text) : async () {
+    verifyUser(caller);
 
     let userAlbums = getUserAlbums(caller);
     userAlbums.remove(albumId);
@@ -339,9 +403,7 @@ actor {
   };
 
   public query ({ caller }) func listAlbums() : async [SharedAlbum] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can list albums");
-    };
+    verifyUser(caller);
 
     let userAlbums = getUserAlbums(caller);
     let albumIter = userAlbums.values();
@@ -349,9 +411,7 @@ actor {
   };
 
   public shared ({ caller }) func addPhotosToAlbum(albumId : Text, photoIds : [Text]) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can add photos to albums");
-    };
+    verifyUser(caller);
 
     let userAlbums = getUserAlbums(caller);
     switch (userAlbums.get(albumId)) {
@@ -360,6 +420,7 @@ actor {
         for (photoId in photoIds.values()) {
           newPhotoIdsList.add(photoId);
         };
+
         let combinedPhotoIds = switch (album.photoIds.isEmpty(), newPhotoIdsList.isEmpty()) {
           case (false, false) {
             let albumArray = album.photoIds.toArray();
@@ -375,10 +436,19 @@ actor {
           case (true, false) { newPhotoIdsList };
           case (true, true) { List.empty<Text>() };
         };
-        let updatedAlbum : InternalAlbum = {
+
+        // If the new album has no cover photo, set the first photo as cover
+        let albumWithPhotos = {
           album with
           photoIds = combinedPhotoIds : List.List<Text>;
         };
+        let updatedAlbum : InternalAlbum = if (albumWithPhotos.coverPhotoId == null and not albumWithPhotos.photoIds.isEmpty()) {
+          {
+            albumWithPhotos with
+            coverPhotoId = ?albumWithPhotos.photoIds.toArray()[0];
+          };
+        } else { albumWithPhotos };
+
         userAlbums.add(albumId, updatedAlbum);
         albums.add(caller, userAlbums);
       };
@@ -389,17 +459,25 @@ actor {
   };
 
   public shared ({ caller }) func removePhotoFromAlbum(albumId : Text, photoId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can remove photos from albums");
-    };
+    verifyUser(caller);
 
     let userAlbums = getUserAlbums(caller);
     switch (userAlbums.get(albumId)) {
       case (?album) {
         let updatedPhotoIds = album.photoIds.filter(func(id) { photoId != id });
+
+        var newCoverPhotoId = album.coverPhotoId;
+        if (album.coverPhotoId == ?photoId) {
+          // Set to first photo or null if empty
+          newCoverPhotoId := if (not updatedPhotoIds.isEmpty()) {
+            ?updatedPhotoIds.toArray()[0];
+          } else { null };
+        };
+
         let updatedAlbum : InternalAlbum = {
           album with
           photoIds = updatedPhotoIds : List.List<Text>;
+          coverPhotoId = newCoverPhotoId;
         };
         userAlbums.add(albumId, updatedAlbum);
         albums.add(caller, userAlbums);
@@ -411,9 +489,7 @@ actor {
   };
 
   public query ({ caller }) func getAlbum(albumId : Text) : async SharedAlbum {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can get albums");
-    };
+    verifyUser(caller);
 
     let userAlbums = getUserAlbums(caller);
     switch (userAlbums.get(albumId)) {
@@ -425,9 +501,7 @@ actor {
   };
 
   public query ({ caller }) func getAlbumPhotosPaginated(albumId : Text, cursor : ?Nat, size : ?Nat) : async ListAlbumPhotosResponse {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can get album photos");
-    };
+    verifyUser(caller);
 
     let userAlbums = getUserAlbums(caller);
     switch (userAlbums.get(albumId)) {
@@ -480,9 +554,7 @@ actor {
   };
 
   public query ({ caller }) func getAlbumPhoto(albumId : Text, photoId : Text) : async Photo {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can get album photos");
-    };
+    verifyUser(caller);
 
     let userAlbums = getUserAlbums(caller);
     switch (userAlbums.get(albumId)) {

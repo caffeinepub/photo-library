@@ -105,6 +105,25 @@ export function useDeletePhoto() {
       queryClient.invalidateQueries({ queryKey: ['allPhotos'] });
       queryClient.invalidateQueries({ queryKey: ['albums'] });
       queryClient.invalidateQueries({ queryKey: ['albumPhotos'] });
+      queryClient.invalidateQueries({ queryKey: ['album'] });
+    },
+  });
+}
+
+export function useUpdatePhotoCaption() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ photoId, caption }: { photoId: string; caption: string | null }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updatePhotoCaption(photoId, caption);
+    },
+    onSuccess: () => {
+      // Invalidate all photo queries to reflect caption changes
+      queryClient.invalidateQueries({ queryKey: ['allPhotos'] });
+      queryClient.invalidateQueries({ queryKey: ['photo'] });
+      queryClient.invalidateQueries({ queryKey: ['albumPhotos'] });
     },
   });
 }
@@ -118,6 +137,19 @@ export function useListAlbums() {
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.listAlbums();
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+export function useGetAlbum(albumId: string) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<SharedAlbum>({
+    queryKey: ['album', albumId],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getAlbum(albumId);
     },
     enabled: !!actor && !actorFetching,
   });
@@ -147,8 +179,9 @@ export function useRenameAlbum() {
       if (!actor) throw new Error('Actor not available');
       return actor.renameAlbum(albumId, newName);
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['albums'] });
+      queryClient.invalidateQueries({ queryKey: ['album', variables.albumId] });
     },
   });
 }
@@ -168,24 +201,6 @@ export function useDeleteAlbum() {
   });
 }
 
-export function useGetAlbumPhotosPaginated(albumId: string) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useInfiniteQuery<ListAlbumPhotosResponse>({
-    queryKey: ['albumPhotos', albumId],
-    queryFn: async ({ pageParam }) => {
-      if (!actor) throw new Error('Actor not available');
-      const cursor = pageParam ? BigInt(pageParam as number) : null;
-      return actor.getAlbumPhotosPaginated(albumId, cursor, null);
-    },
-    getNextPageParam: (lastPage) => {
-      return lastPage.nextCursor !== undefined ? Number(lastPage.nextCursor) : undefined;
-    },
-    initialPageParam: undefined,
-    enabled: !!actor && !actorFetching,
-  });
-}
-
 export function useAddPhotosToAlbum() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -197,6 +212,7 @@ export function useAddPhotosToAlbum() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['albums'] });
+      queryClient.invalidateQueries({ queryKey: ['album', variables.albumId] });
       queryClient.invalidateQueries({ queryKey: ['albumPhotos', variables.albumId] });
     },
   });
@@ -213,7 +229,42 @@ export function useRemovePhotoFromAlbum() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['albums'] });
+      queryClient.invalidateQueries({ queryKey: ['album', variables.albumId] });
       queryClient.invalidateQueries({ queryKey: ['albumPhotos', variables.albumId] });
     },
+  });
+}
+
+export function useSetAlbumCoverPhoto() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ albumId, photoId }: { albumId: string; photoId: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.setAlbumCoverPhoto(albumId, photoId);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['albums'] });
+      queryClient.invalidateQueries({ queryKey: ['album', variables.albumId] });
+    },
+  });
+}
+
+export function useGetAlbumPhotosPaginated(albumId: string) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useInfiniteQuery<ListAlbumPhotosResponse>({
+    queryKey: ['albumPhotos', albumId],
+    queryFn: async ({ pageParam }) => {
+      if (!actor) throw new Error('Actor not available');
+      const cursor = pageParam ? BigInt(pageParam as number) : null;
+      return actor.getAlbumPhotosPaginated(albumId, cursor, null);
+    },
+    getNextPageParam: (lastPage) => {
+      return lastPage.nextCursor !== undefined ? Number(lastPage.nextCursor) : undefined;
+    },
+    initialPageParam: undefined,
+    enabled: !!actor && !actorFetching,
   });
 }

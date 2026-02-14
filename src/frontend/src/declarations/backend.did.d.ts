@@ -24,11 +24,13 @@ export interface Photo {
   'blob' : ExternalBlob,
   'name' : string,
   'createdAt' : Time,
+  'caption' : [] | [string],
 }
 export interface SharedAlbum {
   'id' : string,
   'name' : string,
   'photoIds' : Array<string>,
+  'coverPhotoId' : [] | [string],
 }
 export type Time = bigint;
 export interface UserProfile { 'name' : string }
@@ -92,6 +94,8 @@ export interface _SERVICE {
   'removePhotoFromAlbum' : ActorMethod<[string, string], undefined>,
   'renameAlbum' : ActorMethod<[string, string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'setAlbumCoverPhoto' : ActorMethod<[string, string], undefined>,
+  'updatePhotoCaption' : ActorMethod<[string, [] | [string]], undefined>,
   'uploadMultiplePhotos' : ActorMethod<[Array<Photo>], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;

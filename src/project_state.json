@@ -1,17 +1,21 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
-  "summary": "Build “Photo Library”: a mobile-first, Google Photos-style personal gallery where each authenticated user can upload, view, delete, and organize their own photos into simple albums (without removing photos from the main library grid).",
+  "projectStateVersion": 11,
+  "summary": "Extend “Photo Library” with fast, non-AI local search on the Home screen (matching album names, photo captions, and filenames when available), add per-photo editable captions stored in the backend (edited from the full-screen viewer), add a generated cartoonish old-camera favicon, and create checkpoint PHOTO_APP_STAGE_3_SEARCH when complete.",
   "architectural_notes": [
     "Mobile-first layout; keep UI minimal and fast using simple components",
     "Handle upload errors and show a basic message",
     "Upload flow must be additive: selecting/uploading new photos must not remove previously uploaded photos; support an accumulating pre-upload selection preview.",
     "Albums must be simple and limited to spec (no tags, AI search, sharing, smart albums, etc.)",
     "A photo can belong to 0..N albums and must still appear in the main library grid (album membership is non-destructive)",
-    "Create checkpoint PHOTO_APP_STAGE_2_ALBUMS after implementing Albums"
+    "Create checkpoint PHOTO_APP_STAGE_2_ALBUMS after implementing Albums",
+    "Albums: support user-selected album cover photo from album detail view via an \"Album Cover Photo\" action; if the chosen cover photo is removed from the album, auto-fallback to the first photo in the album until user reselects.",
+    "Search: add a Home search bar that performs fast, non-AI, client-side filtering over already-loaded photos/albums (no server-side search).",
+    "Captions: captions are a persisted per-photo backend text field editable from the full-screen viewer."
   ],
   "known_issues": [],
   "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Cartoonish old camera icon with simple bold outlines and minimal shading, transparent background (favicon-old-camera.dim_512x512.png)",
   "existing_features": [
     {
       "id": "feature-implement-authentication-using-internet-identity-allow-users-to-sign-in-and-sign-out-and-gate-the-app-so-unauthenticated-users-cannot-access-the-photo-gallery-screens",
@@ -106,6 +110,62 @@
       "title": "Create a project checkpoint named PHOTO_APP_STAGE_2_ALBUMS after the Albums feature is implemented and integrated end-to-end.",
       "reqIds": [
         "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-albums-list-ui-to-render-the-album-cover-using-the-explicit-cover-photo-when-set-otherwise-use-the-first-photo-in-the-album-otherwise-show-the-existing-placeholder-when-the-album-has-no-photos",
+      "title": "Update the Albums list UI to render the album cover using the explicit cover photo when set; otherwise use the first photo in the album; otherwise show the existing placeholder when the album has no photos.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-album-cover-photo-action-in-the-album-detail-view-that-opens-a-chooser-limited-to-photos-in-that-album-and-lets-the-user-select-one-photo-to-set-as-the-album-cover-photo",
+      "title": "Add an \"Album Cover Photo\" action in the album detail view that opens a chooser limited to photos in that album, and lets the user select one photo to set as the album cover photo.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-mutations-for-setting-an-album-cover-photo-and-ensure-all-relevant-cached-queries-are-invalidated-so-ui-updates-consistently-albums-list-and-album-detail",
+      "title": "Add React Query hooks/mutations for setting an album cover photo and ensure all relevant cached queries are invalidated so UI updates consistently (albums list and album detail).",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-editable-caption-ui-in-the-full-screen-photo-viewer-that-lets-the-user-view-and-edit-the-current-photo-s-caption-saving-it-to-the-backend-and-updating-the-ui-state-accordingly",
+      "title": "Add an editable caption UI in the full-screen photo viewer that lets the user view and edit the current photo’s caption, saving it to the backend and updating the UI state accordingly.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-fast-non-ai-search-bar-on-the-home-screen-header-that-locally-filters-already-loaded-data-in-the-library-tab-filter-photos-by-caption-text-and-filename-name-when-available-in-the-albums-tab-filter-albums-by-album-name",
+      "title": "Implement a fast, non-AI search bar on the Home screen header that locally filters already-loaded data: in the Library tab, filter photos by caption text and filename/name (when available); in the Albums tab, filter albums by album name.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-generate-and-add-a-cartoonish-old-camera-favicon-as-a-static-frontend-asset-and-wire-it-into-the-app-html-so-browsers-display-it-as-the-site-favicon",
+      "title": "Generate and add a cartoonish old-camera favicon as a static frontend asset, and wire it into the app HTML so browsers display it as the site favicon.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-project-checkpoint-document-named-photo-app-stage-3-search-after-implementing-search-captions-and-favicon-end-to-end",
+      "title": "Create a project checkpoint document named PHOTO_APP_STAGE_3_SEARCH after implementing search, captions, and favicon end-to-end.",
+      "reqIds": [
+        "REQ-32"
       ],
       "version": 1
     }
@@ -226,6 +286,68 @@
       "summary": "Update backend upgrade/migration logic (if applicable in this project) so existing deployed canister state can be upgraded without data loss, initializing albums to an empty state for all users.",
       "reqIds": [
         "REQ-17"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Allow user to set an explicit album cover photo from within the album detail view via an \"Album Cover Photo\" action; if the selected cover is removed from the album, fall back to the first photo in the album until the user picks a new one.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Add persisted support for an explicit album cover photo per album, including a backend API to set or change the cover photo to a specific photo that exists in the album.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Implement automatic fallback behavior for album covers: if an album’s chosen cover photo is removed from the album, the album cover must fall back to the first photo in the album; if the album becomes empty, it has no cover photo.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "If the project uses upgrade-safe persisted album state, add conditional upgrade/migration handling so existing deployed state gains the new album cover photo field without data loss.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Add a Home-screen search bar that locally filters already-loaded content; search matches album names, photo captions, and filename (if available). No AI; keep it fast and simple.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Add per-photo editable captions: store caption text in the backend per photo and allow editing from the full-screen photo viewer UI.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Add a generated cartoonish old-camera favicon to the app.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Create checkpoint PHOTO_APP_STAGE_3_SEARCH after Search + Captions + favicon are implemented end-to-end.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Extend the backend photo data model to persist an optional per-photo caption for each user, and expose an authorized API to update (set/clear) the caption for a specific photo owned by the caller.",
+      "reqIds": [
+        "REQ-28"
       ],
       "status": "pending"
     }

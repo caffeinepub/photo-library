@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useGetCallerUserProfile, useGetAllPhotosPaginated } from '../hooks/useQueries';
 import { useQueryClient } from '@tanstack/react-query';
@@ -6,7 +6,7 @@ import PhotoGrid from '../components/PhotoGrid';
 import PhotoViewer from '../components/PhotoViewer';
 import UploadButton from '../components/UploadButton';
 import AlbumsScreen from './AlbumsScreen';
-import { LogOut } from 'lucide-react';
+import { LogOut, Search } from 'lucide-react';
 import type { Photo } from '../backend';
 
 type Tab = 'library' | 'albums';
@@ -18,10 +18,23 @@ export default function HomeScreen() {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('library');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: photosData, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetAllPhotosPaginated();
 
   const allPhotos: Photo[] = photosData?.pages.flatMap((page) => page.photos) ?? [];
+
+  // Filter photos based on search query (caption, name, filename)
+  const filteredPhotos = useMemo(() => {
+    if (!searchQuery.trim()) return allPhotos;
+    
+    const query = searchQuery.toLowerCase();
+    return allPhotos.filter((photo) => {
+      const caption = photo.caption?.toLowerCase() || '';
+      const name = photo.name.toLowerCase();
+      return caption.includes(query) || name.includes(query);
+    });
+  }, [allPhotos, searchQuery]);
 
   const handleSignOut = async () => {
     await clear();
@@ -97,6 +110,20 @@ export default function HomeScreen() {
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div className="mx-auto max-w-7xl px-4 pt-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search"
+              className="w-full rounded-lg border border-input bg-background pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-h-[44px]"
+            />
+          </div>
+        </div>
+
         {/* Upload Section - Only show on Library tab */}
         {activeTab === 'library' && (
           <div className="mx-auto max-w-7xl px-4 pb-4 pt-4">
@@ -125,7 +152,7 @@ export default function HomeScreen() {
                   <p className="text-muted-foreground">Loading photos...</p>
                 </div>
               </div>
-            ) : allPhotos.length === 0 ? (
+            ) : filteredPhotos.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="mb-4 rounded-full bg-muted p-6">
                   <svg
@@ -142,14 +169,20 @@ export default function HomeScreen() {
                     />
                   </svg>
                 </div>
-                <h2 className="mb-2 text-xl font-semibold text-foreground">No photos yet</h2>
-                <p className="text-muted-foreground">Select and upload your first photo to get started</p>
+                <h2 className="mb-2 text-xl font-semibold text-foreground">
+                  {searchQuery ? 'No matching photos' : 'No photos yet'}
+                </h2>
+                <p className="text-muted-foreground">
+                  {searchQuery
+                    ? 'Try a different search term'
+                    : 'Select and upload your first photo to get started'}
+                </p>
               </div>
             ) : (
               <>
-                <PhotoGrid photos={allPhotos} onPhotoClick={handlePhotoClick} />
+                <PhotoGrid photos={filteredPhotos} onPhotoClick={handlePhotoClick} />
 
-                {hasNextPage && (
+                {hasNextPage && !searchQuery && (
                   <div className="mt-8 flex justify-center">
                     <button
                       onClick={() => fetchNextPage()}
@@ -172,7 +205,7 @@ export default function HomeScreen() {
           </div>
         </main>
       ) : (
-        <AlbumsScreen />
+        <AlbumsScreen searchQuery={searchQuery} />
       )}
 
       {/* Footer */}
@@ -196,7 +229,7 @@ export default function HomeScreen() {
       {/* Photo Viewer */}
       {selectedPhotoIndex !== null && activeTab === 'library' && (
         <PhotoViewer
-          photos={allPhotos}
+          photos={filteredPhotos}
           initialIndex={selectedPhotoIndex}
           onClose={handleCloseViewer}
         />

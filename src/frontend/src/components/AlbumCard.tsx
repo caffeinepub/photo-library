@@ -7,8 +7,9 @@ interface AlbumCardProps {
 }
 
 export default function AlbumCard({ album, onClick }: AlbumCardProps) {
-  const firstPhotoId = album.photoIds[0];
-  const { data: coverPhoto } = useGetPhoto(firstPhotoId);
+  // Prefer explicit cover photo, otherwise use first photo
+  const coverPhotoId = album.coverPhotoId ?? album.photoIds[0];
+  const { data: coverPhoto } = useGetPhoto(coverPhotoId);
 
   return (
     <button

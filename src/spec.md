@@ -1,15 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Add simple per-user photo albums (create/rename/delete, add/remove photos) with an Albums tab, album covers, and an album grid view while keeping photos in the main Library.
+**Goal:** Add fast local search on the Home screen, support editable per-photo captions, and ship a generated cartoon old-camera favicon.
 
 **Planned changes:**
-- Extend the backend data model to store per-user albums as references to existing photo IDs (photos can be in multiple albums and always remain in the main library).
-- Add backend APIs to create/rename/delete/list albums, add/remove one-or-more photo IDs to/from an album, and fetch an album’s photos with deterministic ordering and pagination compatible with the existing grid.
-- Update backend upgrade/migration logic to preserve existing data and initialize album state empty on upgrade.
-- Add an Albums tab in the authenticated UI to switch between Library and Albums (mobile-first, English text).
-- Implement Albums UI: albums list/grid with cover thumbnail (derived from album contents) + name, empty placeholder cover when no photos, and create/rename/delete flows with basic delete confirmation.
-- Implement Album detail view: open an album to see a paginated photo grid; add photos from the library to the album and remove photos from the album without deleting/moving them from the main Library.
-- Create a project checkpoint named PHOTO_APP_STAGE_2_ALBUMS after end-to-end integration.
+- Backend: extend the photo data model to persist an optional caption per photo (per user) and return it via existing photo list/get APIs.
+- Backend: add an authenticated API to set/clear a caption for a caller-owned photo, preserving existing ordering and album membership; include upgrade/migration handling if needed so existing photos initialize with no caption.
+- Frontend: add a caption field to the full-screen photo viewer to view/edit/save the current photo’s caption with loading and error states; update/invalidate cached photo data so captions are reflected elsewhere.
+- Frontend: add a Home header search input that locally filters already-loaded data (Library: by caption + filename/name when available; Albums: by album name), case-insensitive, and restores results when cleared.
+- Frontend: add a generated cartoonish old-camera favicon as a static asset and reference it from the app HTML.
+- Docs: create checkpoint file `frontend/PHOTO_APP_STAGE_3_SEARCH.checkpoint.md` summarizing Search + Captions + Favicon and any API additions.
 
-**User-visible outcome:** Signed-in users can switch to an Albums tab, create/rename/delete albums, open an album to see its photos in a grid, and add/remove photos to albums while the Library remains unchanged and complete.
+**User-visible outcome:** Users can edit captions in the full-screen viewer, and quickly search/filter their already-loaded photos and albums on Home; the app also displays a cartoon old-camera favicon in the browser tab.

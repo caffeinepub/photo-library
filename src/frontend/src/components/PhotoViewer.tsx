@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
-import { useDeletePhoto } from '../hooks/useQueries';
+import { X, ChevronLeft, ChevronRight, Trash2, Save } from 'lucide-react';
+import { useDeletePhoto, useUpdatePhotoCaption } from '../hooks/useQueries';
 import type { Photo } from '../backend';
 
 interface PhotoViewerProps {
@@ -11,11 +11,25 @@ interface PhotoViewerProps {
 
 export default function PhotoViewer({ photos, initialIndex, onClose }: PhotoViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [caption, setCaption] = useState('');
+  const [isCaptionEdited, setIsCaptionEdited] = useState(false);
+  const [captionError, setCaptionError] = useState<string | null>(null);
+  
   const { mutate: deletePhoto, isPending: isDeleting } = useDeletePhoto();
+  const { mutate: updateCaption, isPending: isSavingCaption } = useUpdatePhotoCaption();
 
   const currentPhoto = photos[currentIndex];
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < photos.length - 1;
+
+  // Update caption when photo changes
+  useEffect(() => {
+    if (currentPhoto) {
+      setCaption(currentPhoto.caption || '');
+      setIsCaptionEdited(false);
+      setCaptionError(null);
+    }
+  }, [currentPhoto]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -53,6 +67,36 @@ export default function PhotoViewer({ photos, initialIndex, onClose }: PhotoView
         }
       },
     });
+  };
+
+  const handleCaptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setCaption(e.target.value);
+    setIsCaptionEdited(true);
+    setCaptionError(null);
+  };
+
+  const handleSaveCaption = () => {
+    if (!currentPhoto || isSavingCaption) return;
+
+    const captionToSave = caption.trim() || null;
+    
+    updateCaption(
+      { photoId: currentPhoto.id, caption: captionToSave },
+      {
+        onSuccess: () => {
+          setIsCaptionEdited(false);
+          setCaptionError(null);
+        },
+        onError: (error) => {
+          setCaptionError(error instanceof Error ? error.message : 'Failed to save caption');
+        },
+      }
+    );
+  };
+
+  const handleClearCaption = () => {
+    setCaption('');
+    setIsCaptionEdited(true);
   };
 
   if (!currentPhoto) {
@@ -101,7 +145,7 @@ export default function PhotoViewer({ photos, initialIndex, onClose }: PhotoView
       </div>
 
       {/* Main Image */}
-      <div className="flex h-full items-center justify-center p-4 pt-20 pb-20">
+      <div className="flex h-full items-center justify-center p-4 pt-20 pb-48">
         <img
           src={currentPhoto.blob.getDirectURL()}
           alt={currentPhoto.name}
@@ -130,11 +174,60 @@ export default function PhotoViewer({ photos, initialIndex, onClose }: PhotoView
         </button>
       )}
 
-      {/* Bottom Info */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-        <p className="text-center text-sm text-white/80">{currentPhoto.name}</p>
+      {/* Bottom Info and Caption Editor */}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+        <div className="mx-auto max-w-3xl">
+          <p className="text-center text-sm text-white/80 mb-4">{currentPhoto.name}</p>
+          
+          {/* Caption Editor */}
+          <div className="space-y-2">
+            <label htmlFor="caption" className="block text-sm font-medium text-white/90">
+              Caption
+            </label>
+            <textarea
+              id="caption"
+              value={caption}
+              onChange={handleCaptionChange}
+              placeholder="Add a caption..."
+              rows={2}
+              className="w-full rounded-lg border border-white/20 bg-black/50 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 resize-none"
+            />
+            
+            {captionError && (
+              <p className="text-sm text-red-400">{captionError}</p>
+            )}
+            
+            <div className="flex gap-2 justify-end">
+              {caption && (
+                <button
+                  onClick={handleClearCaption}
+                  disabled={isSavingCaption}
+                  className="rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
+                >
+                  Clear
+                </button>
+              )}
+              <button
+                onClick={handleSaveCaption}
+                disabled={!isCaptionEdited || isSavingCaption}
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
+              >
+                {isSavingCaption ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Save
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-

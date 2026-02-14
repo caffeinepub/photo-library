@@ -19,6 +19,7 @@ export interface Photo {
     blob: ExternalBlob;
     name: string;
     createdAt: Time;
+    caption?: string;
 }
 export interface ListPhotosResponse {
     photos: Array<Photo>;
@@ -33,6 +34,7 @@ export interface SharedAlbum {
     id: string;
     name: string;
     photoIds: Array<string>;
+    coverPhotoId?: string;
 }
 export interface UserProfile {
     name: string;
@@ -63,5 +65,7 @@ export interface backendInterface {
     removePhotoFromAlbum(albumId: string, photoId: string): Promise<void>;
     renameAlbum(albumId: string, newName: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    setAlbumCoverPhoto(albumId: string, photoId: string): Promise<void>;
+    updatePhotoCaption(photoId: string, newCaption: string | null): Promise<void>;
     uploadMultiplePhotos(newPhotos: Array<Photo>): Promise<void>;
 }

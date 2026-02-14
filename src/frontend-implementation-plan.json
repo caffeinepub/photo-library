@@ -1,117 +1,88 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Simple Albums UI (tabs, album list, album grid detail, add/remove photos)",
+  "title": "Local Home search, per-photo captions in viewer, and generated favicon",
   "requirements": [
     {
-      "id": "REQ-18",
-      "summary": "Add an Albums tab alongside the Library view in the authenticated UI, keeping the experience mobile-first and English-only.",
+      "id": "REQ-29",
+      "summary": "Add an editable caption field to the full-screen PhotoViewer and persist updates via backend, updating UI and caches.",
       "acceptanceCriteria": [
-        "The signed-in experience provides a clear way to switch between the main Library view and a new Albums view (e.g., tabs/segmented control).",
-        "All user-facing labels, buttons, and messages added for Albums are in English.",
-        "Existing Library behavior (upload, grid, viewer, delete) remains accessible and unchanged when on the Library tab."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/screens/HomeScreen.tsx",
-          "operation": "modify",
-          "description": "Add a simple Library/Albums tab switch within the authenticated screen, preserving the existing Library UI and behaviors when Library is selected. Use the authorization component’s frontend guidance to ensure the tabbed content is only shown when authenticated and cached data stays cleared on logout (Verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/screens/AlbumsScreen.tsx",
-          "operation": "create",
-          "description": "Create an Albums screen component rendered by the new Albums tab; keep layout mobile-first and all text in English."
-        }
-      ]
-    },
-    {
-      "id": "REQ-19",
-      "summary": "Implement Albums list UI with cover thumbnails and album management (create, rename, delete) using React Query updates.",
-      "acceptanceCriteria": [
-        "Albums view shows a list/grid of albums; each album card shows a cover thumbnail (derived from album contents) and the album name.",
-        "If an album has no photos, the UI shows a simple empty cover placeholder.",
-        "Users can create a new album by entering an album name.",
-        "Users can rename an existing album by editing its name.",
-        "Users can delete an album with a basic confirmation step to prevent accidental deletion.",
-        "After create/rename/delete, the albums list updates immediately (via React Query invalidation/refetch)."
+        "PhotoViewer shows a caption field for the currently viewed photo with clear English labeling (e.g., \"Caption\").",
+        "User can edit the caption and save; a loading/disabled state is shown during save, and failures show a simple English error message.",
+        "On successful save, the viewer displays the updated caption for the photo without requiring a full page refresh.",
+        "Relevant React Query caches are invalidated/updated so the Home grid data used for local search reflects the new caption (e.g., invalidate ['allPhotos'] and any per-photo query keys used)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add React Query hooks for albums: listAlbums, createAlbum, renameAlbum, deleteAlbum, and minimal cover-photo fetching based on existing backend capabilities. Ensure mutations invalidate/refetch album-related query keys for immediate UI updates."
+          "description": "Add a React Query mutation hook that calls the backend capability to update (set/clear) a photo caption, and on success invalidate/update relevant caches (at minimum ['allPhotos'] and any ['photo', photoId] queries)."
         },
         {
-          "path": "frontend/src/screens/AlbumsScreen.tsx",
+          "path": "frontend/src/components/PhotoViewer.tsx",
           "operation": "modify",
-          "description": "Render a simple albums grid/list with album name and cover thumbnail. Cover derivation: if album has photoIds, fetch a cover photo (e.g., first photoId) via existing backend capability; otherwise show an empty placeholder. Provide create/rename/delete UI with English labels and a basic delete confirmation."
-        },
-        {
-          "path": "frontend/src/components/AlbumCard.tsx",
-          "operation": "create",
-          "description": "Add an AlbumCard component used by AlbumsScreen to display album name and cover (using blob-storage ExternalBlob.getDirectURL() for cover rendering where available; Verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/components/AlbumActionsDialog.tsx",
-          "operation": "create",
-          "description": "Add a small dialog/modal component to support create and rename (text input) and delete confirmation, keeping UI simple and English-only."
+          "description": "Add a labeled caption editor UI (input/textarea) for the current photo, with Save and Clear actions; wire to the update caption mutation; show loading/disabled state during save and a simple English error message on failure; update local viewer state to reflect the saved caption immediately and invalidate/update React Query caches so Home local search reflects the change."
         }
       ]
     },
     {
-      "id": "REQ-20",
-      "summary": "Implement album detail view with a photo grid, pagination, and add/remove photo membership while keeping photos in the main Library.",
+      "id": "REQ-30",
+      "summary": "Add a fast, local-only Home header search bar that filters already-loaded photos/albums in-memory per active tab.",
       "acceptanceCriteria": [
-        "Tapping an album opens an album detail view that renders photos in a grid using the app’s existing grid/viewer patterns.",
-        "Users can add photos to an album from their library without removing them from the main Library grid.",
-        "Users can remove photos from the album without deleting the photos from the main Library.",
-        "Album grid supports loading more if pagination is required by the backend.",
-        "After add/remove operations, the album grid and album cover update appropriately (via React Query invalidation/refetch)."
+        "Home screen renders a search input in the authenticated experience with English placeholder text (e.g., \"Search\").",
+        "Search filtering is local-only (no new backend search endpoints) and operates on the currently loaded pages of photos/albums.",
+        "Library tab: photo grid updates to only show photos whose caption or name/filename contains the search query (case-insensitive).",
+        "Albums tab: album list updates to only show albums whose name contains the search query (case-insensitive).",
+        "Clearing the search query restores the unfiltered view.",
+        "Search remains responsive for typical page sizes (no expensive per-keystroke recomputation beyond simple in-memory filtering)."
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add React Query hooks for album detail: getAlbum (metadata), getAlbumPhotosPaginated (infinite query), addPhotosToAlbum (mutation), removePhotoFromAlbum (mutation). Ensure add/remove invalidates album photos queries and album list/cover queries so grids and covers update."
-        },
-        {
-          "path": "frontend/src/screens/AlbumDetailScreen.tsx",
-          "operation": "create",
-          "description": "Create an album detail view that shows an album header (name + back) and a paginated photo grid for the album. Reuse existing PhotoGrid and PhotoViewer patterns for viewing. Add a simple 'Add photos' action that opens a picker from the user’s Library."
-        },
-        {
-          "path": "frontend/src/screens/AlbumsScreen.tsx",
-          "operation": "modify",
-          "description": "Wire album selection to open AlbumDetailScreen (e.g., local state navigation within the Albums tab). Ensure there are no orphan views and users can navigate back to the albums list."
-        },
-        {
-          "path": "frontend/src/components/AlbumPhotoGridItem.tsx",
-          "operation": "create",
-          "description": "Add a small wrapper for album grid thumbnails that supports a 'Remove' affordance per photo (removes membership only). Use blob-storage ExternalBlob.getDirectURL() for thumbnail rendering (Verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/components/PhotoPickerDialog.tsx",
-          "operation": "create",
-          "description": "Add a simple modal to select one-or-more photos from the main Library (using already-fetched library pages when possible) and add them to the album. Keep it simple and mobile-first with English-only labels."
-        },
         {
           "path": "frontend/src/screens/HomeScreen.tsx",
           "operation": "modify",
-          "description": "Ensure the Library tab remains unchanged in behavior and accessible; if the Albums tab needs access to the user’s library list for the picker, reuse existing photo queries without altering the Library grid/viewer/delete flows."
+          "description": "Add a controlled search input to the Home header (authenticated experience) with English placeholder text; maintain searchQuery state; implement case-insensitive in-memory filtering of already-loaded photo pages for the Library tab (match against caption and name/filename) using memoization; ensure clearing query restores the unfiltered view; ensure PhotoViewer receives the filtered photo list when a search is active and handle index/range changes safely when the filter changes."
+        },
+        {
+          "path": "frontend/src/screens/AlbumsScreen.tsx",
+          "operation": "modify",
+          "description": "Accept a searchQuery prop from Home and filter the already-loaded albums list locally by album name (case-insensitive); ensure clearing the query restores the full album list and keep UI text in English."
         }
       ]
     },
     {
-      "id": "REQ-21",
-      "summary": "Add a project checkpoint marker for PHOTO_APP_STAGE_2_ALBUMS once Albums UI is integrated end-to-end.",
+      "id": "REQ-31",
+      "summary": "Add a generated cartoon old-camera favicon as a static asset and wire it into index.html.",
       "acceptanceCriteria": [
-        "A checkpoint named PHOTO_APP_STAGE_2_ALBUMS exists and corresponds to a build where Albums works end-to-end (backend + frontend)."
+        "A generated old-camera icon image is added under frontend/public/assets/generated/ and referenced by frontend/index.html via an appropriate <link rel=\"icon\" ...> tag.",
+        "The favicon loads successfully in the browser (no 404) and appears in the browser tab for the app.",
+        "No backend routing is introduced for the favicon (static asset only)."
       ],
       "file_operations": [
         {
-          "path": "frontend/PHOTO_APP_STAGE_2_ALBUMS.checkpoint.md",
+          "path": "frontend/public/assets/generated/favicon-old-camera.dim_512x512.png",
           "operation": "create",
-          "description": "Create a checkpoint marker file documenting that PHOTO_APP_STAGE_2_ALBUMS corresponds to the Albums feature being implemented and wired into the authenticated UI."
+          "description": "Add the generated favicon image asset (transparent background) at exactly frontend/public/assets/generated/favicon-old-camera.dim_512x512.png."
+        },
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Wire the generated favicon into the app HTML by adding an appropriate favicon link tag referencing frontend/public/assets/generated/favicon-old-camera.dim_512x512.png so it loads as a static asset (no backend routing)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-32",
+      "summary": "Create a stage 3 checkpoint document summarizing Search + Captions + Favicon end-to-end.",
+      "acceptanceCriteria": [
+        "A new checkpoint file named frontend/PHOTO_APP_STAGE_3_SEARCH.checkpoint.md exists.",
+        "The checkpoint summarizes the shipped Search + Captions + Favicon changes (frontend + backend) and any relevant API additions.",
+        "The app builds and the full flow works: upload photos, edit captions in viewer, and search filters by caption/name and album name."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/PHOTO_APP_STAGE_3_SEARCH.checkpoint.md",
+          "operation": "create",
+          "description": "Create the checkpoint document summarizing the implemented Home local search, PhotoViewer caption editing (including cache invalidation behavior), and favicon wiring; include a brief note about the backend capability relied on (e.g., caption update method) while keeping this as documentation only."
         }
       ]
     }

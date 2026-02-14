@@ -1,24 +1,41 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { Plus } from 'lucide-react';
 import { useListAlbums } from '../hooks/useQueries';
 import AlbumCard from '../components/AlbumCard';
 import AlbumActionsDialog from '../components/AlbumActionsDialog';
 import AlbumDetailScreen from './AlbumDetailScreen';
-import { Plus } from 'lucide-react';
-import type { SharedAlbum } from '../backend';
 
-export default function AlbumsScreen() {
-  const { data: albums, isLoading } = useListAlbums();
+interface AlbumsScreenProps {
+  searchQuery?: string;
+}
+
+export default function AlbumsScreen({ searchQuery = '' }: AlbumsScreenProps) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [selectedAlbum, setSelectedAlbum] = useState<SharedAlbum | null>(null);
+  const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
+  const { data: albums, isLoading } = useListAlbums();
 
-  if (selectedAlbum) {
-    return <AlbumDetailScreen album={selectedAlbum} onBack={() => setSelectedAlbum(null)} />;
+  // Filter albums based on search query (album name)
+  const filteredAlbums = useMemo(() => {
+    if (!albums) return [];
+    if (!searchQuery.trim()) return albums;
+    
+    const query = searchQuery.toLowerCase();
+    return albums.filter((album) => album.name.toLowerCase().includes(query));
+  }, [albums, searchQuery]);
+
+  if (selectedAlbumId) {
+    return (
+      <AlbumDetailScreen
+        albumId={selectedAlbumId}
+        onBack={() => setSelectedAlbumId(null)}
+      />
+    );
   }
 
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto max-w-7xl">
-        {/* Header with Create Button */}
+        {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-foreground">Albums</h2>
           <button
@@ -26,7 +43,7 @@ export default function AlbumsScreen() {
             className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.98] min-h-[44px]"
           >
             <Plus className="h-4 w-4" />
-            <span>New Album</span>
+            Create Album
           </button>
         </div>
 
@@ -38,7 +55,7 @@ export default function AlbumsScreen() {
               <p className="text-muted-foreground">Loading albums...</p>
             </div>
           </div>
-        ) : !albums || albums.length === 0 ? (
+        ) : filteredAlbums.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="mb-4 rounded-full bg-muted p-6">
               <svg
@@ -55,16 +72,31 @@ export default function AlbumsScreen() {
                 />
               </svg>
             </div>
-            <h2 className="mb-2 text-xl font-semibold text-foreground">No albums yet</h2>
-            <p className="text-muted-foreground">Create your first album to organize your photos</p>
+            <h2 className="mb-2 text-xl font-semibold text-foreground">
+              {searchQuery ? 'No matching albums' : 'No albums yet'}
+            </h2>
+            <p className="text-muted-foreground mb-4">
+              {searchQuery
+                ? 'Try a different search term'
+                : 'Create your first album to organize your photos'}
+            </p>
+            {!searchQuery && (
+              <button
+                onClick={() => setShowCreateDialog(true)}
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.98] min-h-[44px]"
+              >
+                <Plus className="h-4 w-4" />
+                Create Album
+              </button>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {albums.map((album) => (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {filteredAlbums.map((album) => (
               <AlbumCard
                 key={album.id}
                 album={album}
-                onClick={() => setSelectedAlbum(album)}
+                onClick={() => setSelectedAlbumId(album.id)}
               />
             ))}
           </div>

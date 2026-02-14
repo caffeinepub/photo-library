@@ -2,8 +2,29 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-an-albums-tab-to-the-authenticated-app-ui-alongside-the-existing-library-experience-keeping-the-ui-mobile-first-and-simple-with-all-user-facing-text-in-english",
-      "featureTitle": "Add an Albums tab to the authenticated app UI alongside the existing library experience, keeping the UI mobile-first and simple, with all user-facing text in English.",
+      "featureId": "feature-add-an-editable-caption-ui-in-the-full-screen-photo-viewer-that-lets-the-user-view-and-edit-the-current-photo-s-caption-saving-it-to-the-backend-and-updating-the-ui-state-accordingly",
+      "featureTitle": "Add an editable caption UI in the full-screen photo viewer that lets the user view and edit the current photo’s caption, saving it to the backend and updating the UI state accordingly.",
+      "files": [
+        "frontend/src/components/PhotoViewer.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-29"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-fast-non-ai-search-bar-on-the-home-screen-header-that-locally-filters-already-loaded-data-in-the-library-tab-filter-photos-by-caption-text-and-filename-name-when-available-in-the-albums-tab-filter-albums-by-album-name",
+      "featureTitle": "Implement a fast, non-AI search bar on the Home screen header that locally filters already-loaded data: in the Library tab, filter photos by caption text and filename/name (when available); in the Albums tab, filter albums by album name.",
       "files": [
         "frontend/src/screens/AlbumsScreen.tsx",
         "frontend/src/screens/HomeScreen.tsx"
@@ -18,18 +39,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-18"
+        "REQ-30"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-the-albums-tab-ui-list-albums-with-an-album-cover-image-and-album-name-support-creating-renaming-and-deleting-albums-from-the-ui",
-      "featureTitle": "Implement the Albums tab UI: list albums with an album cover image and album name; support creating, renaming, and deleting albums from the UI.",
+      "featureId": "feature-generate-and-add-a-cartoonish-old-camera-favicon-as-a-static-frontend-asset-and-wire-it-into-the-app-html-so-browsers-display-it-as-the-site-favicon",
+      "featureTitle": "Generate and add a cartoonish old-camera favicon as a static frontend asset, and wire it into the app HTML so browsers display it as the site favicon.",
       "files": [
-        "frontend/src/components/AlbumActionsDialog.tsx",
-        "frontend/src/components/AlbumCard.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/screens/AlbumsScreen.tsx"
+        "frontend/index.html"
       ],
       "components": [
         "authorization@4.0.0",
@@ -41,20 +59,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-19"
+        "REQ-31"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-the-album-detail-view-opening-an-album-shows-a-photo-grid-for-that-album-and-users-can-add-remove-photos-to-from-the-album-while-photos-remain-in-the-main-library",
-      "featureTitle": "Implement the Album detail view: opening an album shows a photo grid for that album, and users can add/remove photos to/from the album while photos remain in the main library.",
+      "featureId": "feature-create-a-project-checkpoint-document-named-photo-app-stage-3-search-after-implementing-search-captions-and-favicon-end-to-end",
+      "featureTitle": "Create a project checkpoint document named PHOTO_APP_STAGE_3_SEARCH after implementing search, captions, and favicon end-to-end.",
       "files": [
-        "frontend/src/components/AlbumPhotoGridItem.tsx",
-        "frontend/src/components/PhotoPickerDialog.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/screens/AlbumDetailScreen.tsx",
-        "frontend/src/screens/AlbumsScreen.tsx",
-        "frontend/src/screens/HomeScreen.tsx"
+        "frontend/PHOTO_APP_STAGE_3_SEARCH.checkpoint.md"
       ],
       "components": [
         "authorization@4.0.0",
@@ -66,27 +79,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-20"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-create-a-project-checkpoint-named-photo-app-stage-2-albums-after-the-albums-feature-is-implemented-and-integrated-end-to-end",
-      "featureTitle": "Create a project checkpoint named PHOTO_APP_STAGE_2_ALBUMS after the Albums feature is implemented and integrated end-to-end.",
-      "files": [
-        "frontend/PHOTO_APP_STAGE_2_ALBUMS.checkpoint.md"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-21"
+        "REQ-32"
       ],
       "confidence": "high"
     }

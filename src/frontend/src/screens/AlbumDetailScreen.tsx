@@ -1,30 +1,34 @@
 import { useState } from 'react';
-import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
-import { useGetAlbumPhotosPaginated, useRemovePhotoFromAlbum } from '../hooks/useQueries';
+import { ChevronLeft, Plus, Trash2, Image } from 'lucide-react';
+import { useGetAlbum, useGetAlbumPhotosPaginated, useRemovePhotoFromAlbum } from '../hooks/useQueries';
 import AlbumActionsDialog from '../components/AlbumActionsDialog';
 import PhotoPickerDialog from '../components/PhotoPickerDialog';
 import AlbumPhotoGridItem from '../components/AlbumPhotoGridItem';
 import PhotoViewer from '../components/PhotoViewer';
-import type { SharedAlbum, Photo } from '../backend';
+import AlbumCoverPhotoDialog from '../components/AlbumCoverPhotoDialog';
+import type { Photo } from '../backend';
 
 interface AlbumDetailScreenProps {
-  album: SharedAlbum;
+  albumId: string;
   onBack: () => void;
 }
 
-export default function AlbumDetailScreen({ album, onBack }: AlbumDetailScreenProps) {
+export default function AlbumDetailScreen({ albumId, onBack }: AlbumDetailScreenProps) {
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPhotoPickerDialog, setShowPhotoPickerDialog] = useState(false);
+  const [showCoverPhotoDialog, setShowCoverPhotoDialog] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
 
-  const { data: photosData, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetAlbumPhotosPaginated(album.id);
+  const { data: album, isLoading: albumLoading } = useGetAlbum(albumId);
+  const { data: photosData, isLoading: photosLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetAlbumPhotosPaginated(albumId);
   const { mutate: removePhoto } = useRemovePhotoFromAlbum();
 
   const allPhotos: Photo[] = photosData?.pages.flatMap((page) => page.photos) ?? [];
+  const isLoading = albumLoading || photosLoading;
 
   const handleRemovePhoto = (photoId: string) => {
-    removePhoto({ albumId: album.id, photoId });
+    removePhoto({ albumId, photoId });
   };
 
   const handlePhotoClick = (index: number) => {
@@ -34,6 +38,24 @@ export default function AlbumDetailScreen({ album, onBack }: AlbumDetailScreenPr
   const handleCloseViewer = () => {
     setSelectedPhotoIndex(null);
   };
+
+  if (!album && !albumLoading) {
+    return (
+      <main className="flex-1 px-4 py-6">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <h2 className="mb-2 text-xl font-semibold text-foreground">Album not found</h2>
+            <button
+              onClick={onBack}
+              className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.98] min-h-[44px]"
+            >
+              Back to Albums
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex-1 px-4 py-6">
@@ -50,13 +72,22 @@ export default function AlbumDetailScreen({ album, onBack }: AlbumDetailScreenPr
 
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <h2 className="text-2xl font-bold text-foreground truncate">{album.name}</h2>
+              <h2 className="text-2xl font-bold text-foreground truncate">{album?.name ?? 'Loading...'}</h2>
               <p className="text-sm text-muted-foreground">
-                {album.photoIds.length} {album.photoIds.length === 1 ? 'photo' : 'photos'}
+                {album ? `${album.photoIds.length} ${album.photoIds.length === 1 ? 'photo' : 'photos'}` : ''}
               </p>
             </div>
 
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+              <button
+                onClick={() => setShowCoverPhotoDialog(true)}
+                className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 active:scale-[0.98] min-h-[44px]"
+              >
+                <Image className="h-4 w-4" />
+                <span className="hidden sm:inline">Album Cover Photo</span>
+                <span className="sm:hidden">Cover</span>
+              </button>
+
               <button
                 onClick={() => setShowPhotoPickerDialog(true)}
                 className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.98] min-h-[44px]"
@@ -153,7 +184,7 @@ export default function AlbumDetailScreen({ album, onBack }: AlbumDetailScreenPr
       </div>
 
       {/* Dialogs */}
-      {showRenameDialog && (
+      {album && showRenameDialog && (
         <AlbumActionsDialog
           mode="rename"
           album={album}
@@ -161,7 +192,7 @@ export default function AlbumDetailScreen({ album, onBack }: AlbumDetailScreenPr
         />
       )}
 
-      {showDeleteDialog && (
+      {album && showDeleteDialog && (
         <AlbumActionsDialog
           mode="delete"
           album={album}
@@ -172,8 +203,16 @@ export default function AlbumDetailScreen({ album, onBack }: AlbumDetailScreenPr
 
       {showPhotoPickerDialog && (
         <PhotoPickerDialog
-          albumId={album.id}
+          albumId={albumId}
           onClose={() => setShowPhotoPickerDialog(false)}
+        />
+      )}
+
+      {showCoverPhotoDialog && (
+        <AlbumCoverPhotoDialog
+          albumId={albumId}
+          currentCoverPhotoId={album?.coverPhotoId}
+          onClose={() => setShowCoverPhotoDialog(false)}
         />
       )}
 

@@ -1,176 +1,126 @@
 {
   "kind": "build_request",
-  "title": "Add simple Albums (create/rename/delete, add/remove photos, Albums tab + album grid view)",
+  "title": "Add local search on Home, per-photo captions, and a generated favicon",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-14",
-      "text": "Extend the backend data model to support per-user albums that reference existing photos (photos must remain in the main library and can belong to multiple albums).",
+      "id": "REQ-28",
+      "text": "Extend the backend photo data model to persist an optional per-photo caption for each user, and expose an authorized API to update (set/clear) the caption for a specific photo owned by the caller.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-1"
         ],
         "quotes": [
-          "Next I want to add albums.\n\nAdd Albums.\n\nRequirements:\n- Create, rename, delete albums.\n- Add/remove photos to/from albums.\n- A photo can be in albums AND still remain in the main library grid (do not move it out).\n- Add an Albums tab with album covers.\n- Album view is a grid.\n\nKeep it simple. No extra features."
+          "Add Search.\n\nRequirements:\n- Search bar on Home.\n- Search matches album names + photo captions + filename (if available).\n- Add an editable caption field per photo.\n\nNo AI. Keep it fast and simple."
         ]
       },
       "acceptanceCriteria": [
-        "Album membership is represented as references (photo IDs) and does not delete/move photos from the user’s main photo list.",
-        "A single photo can belong to multiple albums.",
-        "Album data is stored per authenticated caller (no cross-user access)."
+        "Backend Photo type includes a caption field (optional) that is returned by existing list/get photo APIs.",
+        "A new authenticated update method exists to set or clear a photo caption for a caller-owned photo; unauthorized access traps as with existing photo APIs.",
+        "Updating a caption does not change photo ordering and does not affect album membership.",
+        "If the project supports upgrades with persisted state, existing stored photos are upgraded with caption initialized to empty/none without data loss (update conditional migration logic if applicable)."
       ]
     },
     {
-      "id": "REQ-15",
-      "text": "Add backend APIs for albums: create album, rename album, delete album, list albums, add photos to album, and remove photos from album.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "Create, rename, delete albums.",
-          "Add/remove photos to/from albums."
-        ]
-      },
-      "acceptanceCriteria": [
-        "The backend exposes callable methods to create an album with a name, rename an album, delete an album, list all albums for the caller, add one-or-more photo IDs to an album, and remove one-or-more photo IDs from an album.",
-        "All album APIs enforce the same authorization rule used elsewhere (only authenticated users; callers can only operate on their own albums).",
-        "Adding photos to an album validates that each referenced photo ID exists in the caller’s library; invalid IDs result in a clear error.",
-        "Deleting an album removes only the album and its memberships; it does not delete any photos from storage/library."
-      ]
-    },
-    {
-      "id": "REQ-16",
-      "text": "Add backend APIs to fetch the photos in a specific album and support paging in a way compatible with the existing paginated photo grid approach.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "Album view is a grid."
-        ]
-      },
-      "acceptanceCriteria": [
-        "The backend exposes an API to fetch an album’s photos for the caller, returning photo metadata/blobs consistent with existing photo types used by the frontend.",
-        "Album photo listing supports pagination (cursor + optional size) similar to the existing library listing so the frontend can render a grid and load more.",
-        "The ordering of photos returned for an album is deterministic (e.g., newest-first based on the photo’s createdAt, matching the library’s user expectations)."
-      ]
-    },
-    {
-      "id": "REQ-17",
-      "text": "Update backend upgrade/migration logic (if applicable in this project) so existing deployed canister state can be upgraded without data loss, initializing albums to an empty state for all users.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "Add Albums."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Upgrading from the current deployed version preserves existing user photos and profiles.",
-        "After upgrade, album-related state starts empty and does not break existing photo listing/upload/delete flows."
-      ]
-    },
-    {
-      "id": "REQ-18",
-      "text": "Add an Albums tab to the authenticated app UI alongside the existing library experience, keeping the UI mobile-first and simple, with all user-facing text in English.",
+      "id": "REQ-29",
+      "text": "Add an editable caption UI in the full-screen photo viewer that lets the user view and edit the current photo’s caption, saving it to the backend and updating the UI state accordingly.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-1"
         ],
         "quotes": [
-          "Add an Albums tab with album covers.",
-          "Keep it simple. No extra features."
+          "1) Full-screen viewer\n2) Yes"
         ]
       },
       "acceptanceCriteria": [
-        "The signed-in experience provides a clear way to switch between the main Library view and a new Albums view (e.g., tabs/segmented control).",
-        "All user-facing labels, buttons, and messages added for Albums are in English.",
-        "Existing Library behavior (upload, grid, viewer, delete) remains accessible and unchanged when on the Library tab."
+        "PhotoViewer shows a caption field for the currently viewed photo with clear English labeling (e.g., \"Caption\").",
+        "User can edit the caption and save; a loading/disabled state is shown during save, and failures show a simple English error message.",
+        "On successful save, the viewer displays the updated caption for the photo without requiring a full page refresh.",
+        "Relevant React Query caches are invalidated/updated so the Home grid data used for local search reflects the new caption (e.g., invalidate ['allPhotos'] and any per-photo query keys used)."
       ]
     },
     {
-      "id": "REQ-19",
-      "text": "Implement the Albums tab UI: list albums with an album cover image and album name; support creating, renaming, and deleting albums from the UI.",
+      "id": "REQ-30",
+      "text": "Implement a fast, non-AI search bar on the Home screen header that locally filters already-loaded data: in the Library tab, filter photos by caption text and filename/name (when available); in the Albums tab, filter albums by album name.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-1"
         ],
         "quotes": [
-          "Create, rename, delete albums.",
-          "Add an Albums tab with album covers."
+          "Search bar on Home.",
+          "Search matches album names + photo captions + filename (if available).",
+          "No AI. Keep it fast and simple.",
+          "3) filter the existing photo"
         ]
       },
       "acceptanceCriteria": [
-        "Albums view shows a list/grid of albums; each album card shows a cover thumbnail (derived from album contents) and the album name.",
-        "If an album has no photos, the UI shows a simple empty cover placeholder.",
-        "Users can create a new album by entering an album name.",
-        "Users can rename an existing album by editing its name.",
-        "Users can delete an album with a basic confirmation step to prevent accidental deletion.",
-        "After create/rename/delete, the albums list updates immediately (via React Query invalidation/refetch)."
+        "Home screen renders a search input in the authenticated experience with English placeholder text (e.g., \"Search\").",
+        "Search filtering is local-only (no new backend search endpoints) and operates on the currently loaded pages of photos/albums.",
+        "Library tab: photo grid updates to only show photos whose caption or name/filename contains the search query (case-insensitive).",
+        "Albums tab: album list updates to only show albums whose name contains the search query (case-insensitive).",
+        "Clearing the search query restores the unfiltered view.",
+        "Search remains responsive for typical page sizes (no expensive per-keystroke recomputation beyond simple in-memory filtering)."
       ]
     },
     {
-      "id": "REQ-20",
-      "text": "Implement the Album detail view: opening an album shows a photo grid for that album, and users can add/remove photos to/from the album while photos remain in the main library.",
+      "id": "REQ-31",
+      "text": "Generate and add a cartoonish old-camera favicon as a static frontend asset, and wire it into the app HTML so browsers display it as the site favicon.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-1"
         ],
         "quotes": [
-          "Add/remove photos to/from albums.",
-          "A photo can be in albums AND still remain in the main library grid (do not move it out).",
-          "Album view is a grid."
+          "Can you just have a picture of the old camera cartoonish like to use for the Favicom?",
+          "I trust you to generate one. It doesn't have to be wonderful and not picky. Just something."
         ]
       },
       "acceptanceCriteria": [
-        "Tapping an album opens an album detail view that renders photos in a grid using the app’s existing grid/viewer patterns.",
-        "Users can add photos to an album from their library without removing them from the main Library grid.",
-        "Users can remove photos from the album without deleting the photos from the main Library.",
-        "Album grid supports loading more if pagination is required by the backend.",
-        "After add/remove operations, the album grid and album cover update appropriately (via React Query invalidation/refetch)."
+        "A generated old-camera icon image is added under frontend/public/assets/generated/ and referenced by frontend/index.html via an appropriate <link rel=\"icon\" ...> tag.",
+        "The favicon loads successfully in the browser (no 404) and appears in the browser tab for the app.",
+        "No backend routing is introduced for the favicon (static asset only)."
       ]
     },
     {
-      "id": "REQ-21",
-      "text": "Create a project checkpoint named PHOTO_APP_STAGE_2_ALBUMS after the Albums feature is implemented and integrated end-to-end.",
+      "id": "REQ-32",
+      "text": "Create a project checkpoint document named PHOTO_APP_STAGE_3_SEARCH after implementing search, captions, and favicon end-to-end.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-1"
         ],
         "quotes": [
-          "Create checkpoint PHOTO_APP_STAGE_2_ALBUMS when done."
+          "Create checkpoint PHOTO_APP_STAGE_3_SEARCH when done."
         ]
       },
       "acceptanceCriteria": [
-        "A checkpoint named PHOTO_APP_STAGE_2_ALBUMS exists and corresponds to a build where Albums works end-to-end (backend + frontend)."
+        "A new checkpoint file named frontend/PHOTO_APP_STAGE_3_SEARCH.checkpoint.md exists.",
+        "The checkpoint summarizes the shipped Search + Captions + Favicon changes (frontend + backend) and any relevant API additions.",
+        "The app builds and the full flow works: upload photos, edit captions in viewer, and search filters by caption/name and album name."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor (all logic in backend/main.mo).",
-    "Do not edit files under frontend immutablePaths (compose existing UI components instead).",
-    "Keep Albums simple: only create/rename/delete albums, add/remove photos, albums list with covers, and album grid view.",
-    "Photos added to albums must still remain in the main library grid (no moving).",
-    "Use English for all user-facing text."
+    "Use English for all user-facing text.",
+    "No AI features.",
+    "Search must be local-only: filter already-loaded photos/albums; do not add server-side search APIs.",
+    "Respect Internet Identity auth and existing per-user access controls.",
+    "Backend must remain single-actor (all Motoko logic in backend/main.mo); add/update backend/migration.mo only if required for safe upgrades.",
+    "Do not edit files under frontend/src/components/ui or any other immutable frontend paths listed in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "No tags, AI search, smart albums, sharing, collaborators, or public links.",
-    "No nested albums/folders.",
-    "No photo edits, favorites, or additional metadata features beyond what is required for album membership.",
-    "No third-party authentication beyond Internet Identity."
+    "Do not implement semantic/AI search, tagging, OCR, or image analysis.",
+    "Do not implement full-text indexing or any separate backend search storage.",
+    "Do not add new organization concepts beyond existing albums (no tags, smart albums, etc.).",
+    "Do not change upload behavior beyond including/storing the caption field in returned photo metadata if needed."
   ],
   "imageRequirements": {
-    "required": [],
+    "required": [
+      "Cartoonish old camera icon with simple bold outlines and minimal shading, transparent background (favicon-old-camera.dim_512x512.png)"
+    ],
     "edits": []
   }
 }
