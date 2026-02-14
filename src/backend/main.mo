@@ -11,9 +11,11 @@ import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
-  // Initialize the access control system
+  // Initialize the authorization system
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
@@ -71,14 +73,26 @@ actor {
   };
 
   // Photo management functions
-  public shared ({ caller }) func uploadMultiplePhotos(photos : [Photo]) : async () {
+  public shared ({ caller }) func uploadMultiplePhotos(newPhotos : [Photo]) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can upload photos");
     };
 
-    nextId += photos.size();
-    let userPhotos = listFromArray(photos);
-    allPhotos.add(caller, userPhotos);
+    nextId += newPhotos.size();
+
+    let newPhotosList = listFromArray(newPhotos);
+
+    // Combine new and existing photos
+    let combinedPhotos = switch (allPhotos.get(caller)) {
+      case (?existingPhotos) {
+        let existingArray = existingPhotos.toArray();
+        let newArray = newPhotosList.toArray();
+        listFromArray(existingArray.concat(newArray));
+      };
+      case (null) { newPhotosList };
+    };
+
+    allPhotos.add(caller, combinedPhotos);
   };
 
   func getUserPhotosById(caller : Principal, userId : Principal) : List.List<Photo> {
@@ -220,12 +234,12 @@ actor {
     };
   };
 
-  public query ({ caller }) func getUserPhoto(callerId : Principal, photoId : Text) : async Photo {
+  public query ({ caller }) func getUserPhoto(userId : Principal, photoId : Text) : async Photo {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can fetch photos");
     };
 
-    let userPhotos = getUserPhotosById(caller, callerId);
+    let userPhotos = getUserPhotosById(caller, userId);
     let matching = userPhotos.filter(func(photo) { photoId == photo.id });
     if (matching.isEmpty()) {
       Runtime.trap("Photo does not exist");

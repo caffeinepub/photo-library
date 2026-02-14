@@ -2,13 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-authentication-using-internet-identity-allow-users-to-sign-in-and-sign-out-and-gate-the-app-so-unauthenticated-users-cannot-access-the-photo-gallery-screens",
-      "featureTitle": "Implement authentication using Internet Identity: allow users to sign in and sign out, and gate the app so unauthenticated users cannot access the photo gallery screens.",
+      "featureId": "feature-update-the-upload-ui-flow-so-selecting-photos-multiple-times-adds-to-an-accumulating-pending-upload-selection-does-not-replace-prior-pending-selections-and-display-previews-of-all-pending-photos-before-the-user-performs-the-upload",
+      "featureTitle": "Update the upload UI/flow so selecting photos multiple times adds to an accumulating “pending upload” selection (does not replace prior pending selections), and display previews of all pending photos before the user performs the upload.",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/ProfileSetupDialog.tsx",
-        "frontend/src/main.tsx",
-        "frontend/src/screens/SignInScreen.tsx"
+        "frontend/src/components/PendingUploadPreview.tsx",
+        "frontend/src/components/UploadButton.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -20,34 +18,13 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-12"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-build-the-mobile-first-home-screen-ui-show-a-minimal-photo-grid-newest-first-for-the-signed-in-user-with-pagination-or-infinite-scroll-to-load-more",
-      "featureTitle": "Build the mobile-first Home screen UI: show a minimal photo grid (newest first) for the signed-in user, with pagination or infinite scroll to load more.",
-      "files": [
-        "frontend/src/components/PhotoGrid.tsx",
-        "frontend/src/screens/HomeScreen.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-an-upload-button-on-the-home-screen-that-lets-a-user-pick-multiple-image-files-and-upload-them-handle-upload-failures-by-showing-a-basic-english-error-message",
-      "featureTitle": "Add an “Upload” button on the Home screen that lets a user pick multiple image files and upload them; handle upload failures by showing a basic English error message.",
+      "featureId": "feature-ensure-the-upload-action-only-uploads-the-currently-pending-selection-clears-the-pending-preview-list-on-successful-upload-and-does-not-remove-any-previously-uploaded-photos-from-the-gallery-ui-or-stored-backend-state",
+      "featureTitle": "Ensure the upload action only uploads the currently pending selection, clears the pending preview list on successful upload, and does not remove any previously uploaded photos from the gallery UI or stored backend state.",
       "files": [
         "frontend/src/components/UploadButton.tsx",
         "frontend/src/screens/HomeScreen.tsx"
@@ -62,73 +39,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-6"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-a-full-screen-photo-viewer-tapping-a-photo-in-the-grid-opens-a-full-screen-view-with-next-previous-navigation-through-the-user-s-photos",
-      "featureTitle": "Implement a full-screen photo viewer: tapping a photo in the grid opens a full-screen view with next/previous navigation through the user’s photos.",
-      "files": [
-        "frontend/src/components/PhotoGrid.tsx",
-        "frontend/src/components/PhotoViewer.tsx",
-        "frontend/src/screens/HomeScreen.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-8"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-delete-action-in-the-full-screen-viewer-that-deletes-the-currently-viewed-photo-and-updates-the-ui-accordingly-remove-from-viewer-flow-and-grid",
-      "featureTitle": "Add a Delete action in the full-screen viewer that deletes the currently viewed photo and updates the UI accordingly (remove from viewer flow and grid).",
-      "files": [
-        "frontend/src/components/PhotoViewer.tsx",
-        "frontend/src/screens/HomeScreen.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-9"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-apply-a-coherent-minimal-mobile-first-visual-theme-colors-typography-spacing-and-keep-interactions-fast-and-simple-do-not-add-albums-tags-ai-search-or-other-extra-features",
-      "featureTitle": "Apply a coherent, minimal, mobile-first visual theme (colors, typography, spacing) and keep interactions fast and simple; do not add albums, tags, AI search, or other extra features.",
-      "files": [
-        "frontend/src/components/PhotoViewer.tsx",
-        "frontend/src/index.css",
-        "frontend/src/screens/HomeScreen.tsx",
-        "frontend/src/screens/SignInScreen.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-10"
+        "REQ-13"
       ],
       "confidence": "high"
     }

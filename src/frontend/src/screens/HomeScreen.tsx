@@ -41,16 +41,15 @@ export default function HomeScreen() {
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-          <div>
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
+          <div className="min-w-0 flex-shrink">
             <h1 className="text-xl font-bold text-card-foreground">Photo Library</h1>
             {userProfile && (
-              <p className="text-sm text-muted-foreground">{userProfile.name}</p>
+              <p className="text-sm text-muted-foreground truncate">{userProfile.name}</p>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <UploadButton onError={handleUploadError} />
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={handleSignOut}
               className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 active:scale-[0.98] min-h-[44px]"
@@ -60,6 +59,11 @@ export default function HomeScreen() {
               <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
+        </div>
+
+        {/* Upload Section - Below header on mobile */}
+        <div className="mx-auto max-w-7xl px-4 pb-4">
+          <UploadButton onError={handleUploadError} />
         </div>
       </header>
 
@@ -100,7 +104,7 @@ export default function HomeScreen() {
                 </svg>
               </div>
               <h2 className="mb-2 text-xl font-semibold text-foreground">No photos yet</h2>
-              <p className="text-muted-foreground">Upload your first photo to get started</p>
+              <p className="text-muted-foreground">Select and upload your first photo to get started</p>
             </div>
           ) : (
             <>
@@ -158,4 +162,3 @@ export default function HomeScreen() {
     </div>
   );
 }
-

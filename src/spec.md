@@ -1,14 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Build a mobile-first, per-user private photo library where authenticated users can upload, view, paginate through, and delete their own photos.
+**Goal:** Ensure photo uploads never overwrite previously stored photos, and improve the upload flow with an accumulating pre-upload preview.
 
 **Planned changes:**
-- Add Internet Identity authentication (sign in/sign out) and gate all gallery screens behind auth.
-- Implement a single Motoko main actor backend with per-user photo storage keyed by caller Principal (list/fetch/delete restricted to owner).
-- Add backend APIs for multi-image upload, newest-first listing with pagination/cursor, and secure fetch/delete by photo id.
-- Build a minimal mobile-first Home screen with newest-first photo grid, pagination/infinite-scroll style loading, and an Upload button for multi-select.
-- Add a full-screen photo viewer with next/previous navigation and a Delete action that updates viewer flow and the grid immediately.
-- Apply a coherent minimal visual theme (colors/typography/spacing) and keep UI fast and simple with English-only messages, including basic upload error feedback.
+- Backend: Update `uploadMultiplePhotos` to append newly uploaded photos to the caller’s existing stored photo list (no replacement/removal), while maintaining strict per-user scoping.
+- Backend: Ensure `getAllPhotosPaginated` returns photos newest-first, including newly uploaded photos at the top, while retaining older photos.
+- Frontend: Change photo selection so multiple file-picker selections accumulate into a single “pending upload” list rather than replacing previous selections.
+- Frontend: Display thumbnail previews for all pending photos (including those selected in earlier picker sessions) and show a clear pending count in a mobile-first minimal UI (English text).
+- Frontend/Backend flow: Upload action uploads only the current pending selection; on success clear pending previews; on failure keep pending previews for retry; gallery remains unchanged except for newly added photos.
 
-**User-visible outcome:** Users can sign in with Internet Identity to access a private photo grid, upload multiple images that appear immediately at the top, open photos in a full-screen viewer with next/prev navigation, and delete photos so they disappear from both the viewer and the grid.
+**User-visible outcome:** Users can select photos multiple times, see all pending thumbnails before uploading, and upload to add photos to their existing gallery without any previously uploaded photos disappearing.

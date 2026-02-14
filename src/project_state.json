@@ -1,14 +1,17 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
+  "projectStateVersion": 5,
   "summary": "Build “Photo Library”: a mobile-first, Google Photos-style personal gallery where each authenticated user can upload, view, and delete their own photos in a newest-first grid with a full-screen viewer.",
   "architectural_notes": [
     "Mobile-first layout; keep UI minimal and fast using simple components",
     "No extra features beyond spec (no AI search, tags, albums yet)",
-    "Handle upload errors and show a basic message"
+    "Handle upload errors and show a basic message",
+    "Upload flow must be additive: selecting/uploading new photos must not remove previously uploaded photos; support an accumulating pre-upload selection preview."
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Bug: Uploading a new photo after a previous upload causes the previously uploaded photo to be removed from the stored gallery (acts like replace/delete instead of append)."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-implement-authentication-using-internet-identity-allow-users-to-sign-in-and-sign-out-and-gate-the-app-so-unauthenticated-users-cannot-access-the-photo-gallery-screens",
@@ -55,6 +58,22 @@
       "title": "Apply a coherent, minimal, mobile-first visual theme (colors, typography, spacing) and keep interactions fast and simple; do not add albums, tags, AI search, or other extra features.",
       "reqIds": [
         "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-upload-ui-flow-so-selecting-photos-multiple-times-adds-to-an-accumulating-pending-upload-selection-does-not-replace-prior-pending-selections-and-display-previews-of-all-pending-photos-before-the-user-performs-the-upload",
+      "title": "Update the upload UI/flow so selecting photos multiple times adds to an accumulating “pending upload” selection (does not replace prior pending selections), and display previews of all pending photos before the user performs the upload.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-upload-action-only-uploads-the-currently-pending-selection-clears-the-pending-preview-list-on-successful-upload-and-does-not-remove-any-previously-uploaded-photos-from-the-gallery-ui-or-stored-backend-state",
+      "title": "Ensure the upload action only uploads the currently pending selection, clears the pending preview list on successful upload, and does not remove any previously uploaded photos from the gallery UI or stored backend state.",
+      "reqIds": [
+        "REQ-13"
       ],
       "version": 1
     }
@@ -137,6 +156,20 @@
       "summary": "Ensure newly uploaded photos appear immediately at the top of the home grid without requiring a full page refresh.",
       "reqIds": [
         "REQ-7"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Fix upload flow so subsequent uploads add to existing gallery (do not delete/replace previously uploaded photos) and show an accumulating pre-upload preview of all selected photos",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Fix backend photo upload so calling uploadMultiplePhotos appends the newly uploaded photos to the caller’s existing stored photo list instead of replacing/removing previously stored photos.",
+      "reqIds": [
+        "REQ-11"
       ],
       "status": "pending"
     }

@@ -133,12 +133,12 @@ export interface backendInterface {
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getPhoto(photoId: string): Promise<Photo>;
-    getUserPhoto(callerId: Principal, photoId: string): Promise<Photo>;
+    getUserPhoto(userId: Principal, photoId: string): Promise<Photo>;
     getUserPhotosPaginated(userId: Principal, cursor: bigint | null, size: bigint | null): Promise<ListPhotosResponse>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    uploadMultiplePhotos(photos: Array<Photo>): Promise<void>;
+    uploadMultiplePhotos(newPhotos: Array<Photo>): Promise<void>;
 }
 import type { ExternalBlob as _ExternalBlob, ListPhotosResponse as _ListPhotosResponse, Photo as _Photo, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
